@@ -1,0 +1,12 @@
+{
+  "name": "motion-graphics-studio",
+  "description": "Motion graphics and carousels in your own brand, made with Claude Code and HyperFrames.",
+  "owner": { "name": "wergle3232" },
+  "plugins": [
+    {
+      "name": "motion-graphics-studio",
+      "source": "./",
+      "description": "Make motion graphics and carousels in your own brand with Claude Code and HyperFrames."
+    }
+  ]
+}

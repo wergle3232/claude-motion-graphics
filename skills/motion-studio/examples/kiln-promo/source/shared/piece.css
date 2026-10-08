@@ -1,0 +1,73 @@
+/* Kiln promo: the look, shared by every format. Colours and fonts come from brand.css. */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { overflow: hidden; background: var(--brand-bg); }
+#root { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--brand-bg); color: var(--brand-text); font-family: var(--brand-font-body), sans-serif; }
+
+/* A faint hairline grid, the "paper" every scene sits on. */
+#paper { position: absolute; inset: 0; background-image:
+  linear-gradient(to right, color-mix(in srgb, var(--brand-border) 55%, transparent) 1px, transparent 1px),
+  linear-gradient(to bottom, color-mix(in srgb, var(--brand-border) 55%, transparent) 1px, transparent 1px);
+  background-size: var(--grid) var(--grid); background-position: var(--grid-x, 0) var(--grid-y, 0); }
+
+#stage { position: absolute; inset: 0; }
+
+/* Headlines sit in one slot per format (set by the entry file). */
+.head { position: absolute; left: var(--head-x); top: var(--head-y); width: var(--head-w); font-family: var(--brand-font-display), serif; font-weight: 600; font-size: var(--head-size); line-height: 1.02; letter-spacing: -0.02em; color: var(--brand-text); }
+.head .w { display: inline-block; white-space: pre; }
+.head .accent { color: var(--brand-accent); }
+
+/* Every drawing is made in one 880 x 840 box; the entry file places it. Text inside is
+   64 px or more, so it reads on a phone even in the 16:9 layout. */
+.box { position: absolute; left: var(--box-x); top: var(--box-y); width: 880px; height: 840px; }
+.card { position: absolute; background: var(--brand-surface); border: 2px solid var(--brand-border); border-radius: 28px; box-shadow: 0 18px 40px -22px color-mix(in srgb, var(--brand-text) 45%, transparent); }
+.mono { font-family: var(--brand-font-mono), monospace; }
+.disp { font-family: var(--brand-font-display), serif; }
+
+/* Beat 1: the spreadsheet that went wrong. */
+#sheet { left: 40px; top: 140px; width: 800px; height: 540px; overflow: hidden; }
+.row { position: absolute; left: 0; width: 100%; height: 170px; display: flex; align-items: center; gap: 36px; padding: 0 44px; font-size: 64px; border-top: 2px solid var(--brand-border); }
+.row:first-child { border-top: 0; }
+.row span { position: relative; }
+.row .mono { width: 140px; color: var(--brand-muted); }
+#row3 .bad { position: absolute; inset: 0; background: color-mix(in srgb, var(--brand-accent) 16%, transparent); opacity: 0; }
+#row3 .flag { margin-left: auto; width: 72px; height: 72px; border-radius: 50%; background: var(--brand-accent); color: var(--brand-surface); display: flex; align-items: center; justify-content: center; font-weight: 700; }
+
+/* Beat 2: the phone. */
+#phone { left: 120px; top: 10px; width: 460px; height: 820px; border-radius: 64px; border-width: 3px; padding: 56px 40px; }
+#phone .day { font-size: 72px; font-weight: 600; }
+#slot { position: absolute; left: 40px; right: 40px; top: 210px; height: 300px; border-radius: 26px; border: 2px solid var(--brand-border); padding: 30px 32px; }
+#slot .time { font-size: 64px; color: var(--brand-muted); }
+#slot .what { font-size: 72px; font-weight: 600; margin-top: 12px; }
+#book { position: absolute; left: 40px; right: 40px; top: 560px; height: 150px; border-radius: 75px; background: var(--brand-text); color: var(--brand-surface); font-size: 64px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+#book .done { position: absolute; inset: 0; border-radius: 75px; background: var(--brand-accent-2); display: flex; align-items: center; justify-content: center; opacity: 0; }
+#tap { position: absolute; left: 0; top: 0; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; border: 6px solid var(--brand-accent); opacity: 0; }
+
+/* Beat 3: the studio's week. */
+#week { position: absolute; left: 40px; top: 30px; width: 800px; }
+.days { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 64px; color: var(--brand-muted); }
+.slots { display: grid; grid-template-columns: repeat(7, 1fr); gap: 18px 16px; margin-top: 24px; }
+.pill { height: 64px; border-radius: 32px; border: 2px dashed var(--brand-border); position: relative; }
+.pill i { position: absolute; inset: -2px; border-radius: 32px; background: var(--brand-accent-2); transform-origin: 0 50%; transform: scaleX(0); }
+#count { position: absolute; left: 40px; top: 500px; display: flex; align-items: baseline; gap: 24px; }
+#count .n { font-size: 200px; font-weight: 800; letter-spacing: -0.04em; line-height: 1; }
+#count .of { font-size: 64px; color: var(--brand-muted); }
+#count-label { position: absolute; left: 44px; top: 715px; font-size: 64px; color: var(--brand-muted); white-space: nowrap; }
+#handoff { position: absolute; left: 0; top: 0; border-radius: 32px; background: var(--brand-accent-2); opacity: 0; }
+
+/* Beat 4: who has paid. */
+#paid { left: 40px; top: 110px; width: 800px; height: 600px; }
+.prow { position: absolute; left: 0; width: 100%; height: 200px; display: flex; align-items: center; padding: 0 44px; font-size: 72px; font-weight: 600; border-top: 2px solid var(--brand-border); }
+.prow:first-child { border-top: 0; }
+.chip { margin-left: auto; position: relative; width: 250px; height: 110px; border-radius: 55px; font-family: var(--brand-font-mono), monospace; font-size: 64px; font-weight: 400; }
+.chip span { position: absolute; inset: 0; border-radius: 55px; display: flex; align-items: center; justify-content: center; }
+.chip .no { border: 2px solid var(--brand-border); color: var(--brand-muted); }
+.chip .yes { background: var(--brand-accent-2); color: var(--brand-surface); opacity: 0; }
+
+/* The end. */
+#end { position: absolute; left: var(--end-x); top: var(--end-y); width: var(--end-w); }
+#mark { font-family: var(--brand-font-display), serif; font-weight: 800; font-size: var(--mark-size); line-height: 0.9; letter-spacing: -0.045em; display: flex; align-items: baseline; }
+#mark .l { display: inline-block; }
+#mark .dot { display: inline-block; width: 0.2em; height: 0.2em; border-radius: 50%; background: var(--brand-accent); margin-left: 0.04em; }
+#rule { height: 4px; background: var(--brand-text); transform-origin: 0 50%; margin: var(--end-gap) 0; width: 100%; }
+#tag { font-size: var(--tag-size); font-weight: 600; line-height: 1.15; }
+#url { font-family: var(--brand-font-mono), monospace; font-size: 64px; color: var(--brand-accent); margin-top: 28px; }

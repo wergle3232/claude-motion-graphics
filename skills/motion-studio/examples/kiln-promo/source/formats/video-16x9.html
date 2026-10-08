@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en" data-composition-variables='[{"id":"mode","type":"string","label":"Mode: final or storyboard","default":"final"}]'>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="stylesheet" href="../shared/brand.css" />
+    <link rel="stylesheet" href="../shared/piece.css" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script src="../shared/piece.js"></script>
+    <style>
+      html, body { width: 1920px; height: 1080px; }
+      /* This format's layout. Everything else is in shared/. */
+      #root { --grid: 96px; --grid-x: 96px; --grid-y: 96px; --head-x: 96px; --head-y: 370px; --head-w: 790px; --head-size: 104px; --box-x: 940px; --box-y: 120px; --end-x: 96px; --end-y: 230px; --end-w: 780px; --mark-size: 300px; --tag-size: 84px; --end-gap: 52px; --end-echo: 1; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="15" data-width="1920" data-height="1080">
+      <div id="paper"></div>
+      <div id="stage" class="clip" data-start="0" data-duration="15" data-track-index="0"></div>
+      <audio id="s1" src="../assets/sfx/click-soft.mp3" data-start="0.05" data-duration="0.4" data-track-index="10" data-volume="0.9"></audio>
+      <audio id="s2" src="../assets/sfx/pop.mp3" data-start="0.75" data-duration="0.5" data-track-index="11" data-volume="0.81"></audio>
+      <audio id="s3" src="../assets/sfx/click.mp3" data-start="4.25" data-duration="0.4" data-track-index="12" data-volume="1.0"></audio>
+      <audio id="s4" src="../assets/sfx/chime.mp3" data-start="4.35" data-duration="2.0" data-track-index="13" data-volume="0.72"></audio>
+      <audio id="s5" src="../assets/sfx/whoosh-short.mp3" data-start="5.75" data-duration="0.57" data-track-index="14" data-volume="0.54"></audio>
+      <audio id="s6" src="../assets/sfx/click-soft.mp3" data-start="9.75" data-duration="0.4" data-track-index="15" data-volume="0.81"></audio>
+      <audio id="s7" src="../assets/sfx/click-soft.mp3" data-start="10.1" data-duration="0.4" data-track-index="16" data-volume="0.81"></audio>
+      <audio id="s8" src="../assets/sfx/click-soft.mp3" data-start="10.45" data-duration="0.4" data-track-index="17" data-volume="0.81"></audio>
+      <audio id="s9" src="../assets/sfx/whoosh-short.mp3" data-start="11.45" data-duration="0.57" data-track-index="18" data-volume="0.45"></audio>
+      <audio id="s10" src="../assets/sfx/pop.mp3" data-start="12.05" data-duration="0.5" data-track-index="19" data-volume="0.81"></audio>
+    </div>
+    <script>
+      document.fonts.ready.then(function () { window.__timelines["main"] = window.buildPieceTimeline(); });
+    </script>
+  </body>
+</html>
