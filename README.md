@@ -14,146 +14,35 @@ The videos are made on your own computer by [HyperFrames](https://hyperframes.he
 
 ## What you need
 
-- A Mac (macOS 13 or newer) or a Windows 10 or 11 PC, with about 3 GB of free disk space.
-- A paid Claude plan that includes Claude Code (Pro, Max, Team or Enterprise), or a Claude Console account.
-- About 30 minutes for the first setup.
+- A Windows 10 or 11 PC or a Mac (macOS 13 or newer), with about 3 GB of free disk space.
+- A paid Claude plan that includes Claude Code (Pro, Max, Team or Enterprise).
+- The Claude desktop app (use its **Code** tab), or Claude Code in a terminal.
 
-You will install five things, once: Claude Code, Node.js, FFmpeg, Git and the GitHub tool, then HyperFrames' skills, then this plugin. Each step below says exactly what to type.
+> **What was tested so far:** the plugin and its tools were built and tested on Linux in a cloud computer. The install below has not yet been tried on a real Windows PC or Mac; that test comes next. If a step does not work as written, tell Claude what happened, or see [Troubleshooting](#troubleshooting).
 
-> **Which systems were tested?** The whole setup was tested from scratch on Linux (Ubuntu 24.04) in a cloud computer, following the steps below with the Mac commands' Linux equivalents. The Windows and Mac steps have **not yet been tried on a real Windows PC or Mac**. If a step does not work as written, see [Troubleshooting](#troubleshooting) and tell us what happened.
+## Install: three steps
 
-## Install on a Mac
+**1. Add the plugin.** Open the Claude desktop app, go to the **Code** tab and start a **local** session in any folder (or type `claude` in a terminal). Then say:
 
-You type the commands below into **Terminal** (press Cmd + Space, type `Terminal`, press Enter). Paste one command, press Enter, and wait until it finishes before the next.
+> Install the Claude Code plugin from the GitHub repository wergle3232/claude-motion-graphics: add it as a marketplace, then install motion-graphics-studio from it.
 
-1. **Homebrew** (a tool that installs other tools). Skip this step if `brew --version` already prints a version.
+Claude runs the two commands for you; say yes when it asks. (They are `claude plugin marketplace add wergle3232/claude-motion-graphics` and `claude plugin install motion-graphics-studio@motion-graphics-studio`, if you prefer to type them yourself.) If Claude says Git is missing, let it install Git and try again. If it says it cannot reach the repository, see [Troubleshooting](#troubleshooting).
 
-   ```bash
-   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-   ```
+**2. Set up your computer.** Close the app and open it again (or start a new session), then say:
 
-   It asks for your Mac password (nothing shows while you type it; that is normal). At the end it prints two or three "Next steps" commands; copy and run them, then close Terminal and open it again.
+> Set up motion graphics
 
-2. **Node.js, FFmpeg, Git and the GitHub tool:**
+Claude checks your computer and installs what is missing, after asking you once: Node.js (runs the tools), FFmpeg (puts video files together) and HyperFrames (turns designs into video). It takes about five minutes. Windows may ask "Do you want to allow this app to make changes" for each program: click Yes. If Claude asks you to restart the app at the end, do so. On a Mac without Homebrew, Claude will ask you to paste one line into Terminal, because it needs your Mac password.
 
-   ```bash
-   brew install node ffmpeg git gh
-   ```
+**3. Set up your brand.** Make a folder for your motion work (for example `my-motion` in Documents), start a session in that folder, and say:
 
-3. **Claude Code:**
+> Set up my brand from https://your-website.com
 
-   ```bash
-   curl -fsSL https://claude.ai/install.sh | bash
-   ```
+or, without a website, "Set up my brand". Claude reads your site (colours, fonts, the look) or asks you five short questions, then writes `brand.md` in your folder and shows you what it found. Check the colours and fonts and say if anything is wrong. If you have logo files or your brand's own font files, put them in a `brand` folder inside `my-motion` first.
 
-   Close Terminal, open it again, and check: `claude --version` should print a version number.
+That's it. Work in that folder from now on: each piece gets its own folder inside it.
 
-4. Continue with [Both systems](#both-systems-hyperframes-and-the-plugin).
-
-## Install on Windows
-
-You type the commands below into **PowerShell** (press the Windows key, type `PowerShell`, press Enter). Paste one command, press Enter, and wait until it finishes before the next. If Windows asks "Do you want to allow this app to make changes", choose Yes.
-
-1. **Node.js, FFmpeg, Git and the GitHub tool:**
-
-   ```powershell
-   winget install --id OpenJS.NodeJS.LTS -e
-   winget install --id Gyan.FFmpeg -e
-   winget install --id Git.Git -e
-   winget install --id GitHub.cli -e
-   ```
-
-   The first time, winget may ask you to accept its terms: type `Y` and press Enter. When all four are done, **close PowerShell and open it again** so it can find the new programs.
-
-2. **Claude Code:**
-
-   ```powershell
-   irm https://claude.ai/install.ps1 | iex
-   ```
-
-   Close PowerShell, open it again, and check: `claude --version` should print a version number.
-
-3. Continue with [Both systems](#both-systems-hyperframes-and-the-plugin).
-
-## Both systems: HyperFrames and the plugin
-
-Still in Terminal (Mac) or PowerShell (Windows):
-
-1. **Check the tools are there.** Each of these should print a version number:
-
-   ```bash
-   node --version
-   ffmpeg -version
-   git --version
-   claude --version
-   ```
-
-   Node must be 22 or newer (HyperFrames needs it). If it is older, install a newer one: `brew upgrade node` on a Mac, `winget upgrade --id OpenJS.NodeJS.LTS -e` on Windows. If one says "not found" or "not recognized", close the window, open it again and retry; if it still fails, see [Troubleshooting](#troubleshooting).
-
-2. **Sign in to Claude Code** (only the first time): type `claude`, press Enter, and follow the steps in your browser. When you see Claude's prompt, type `/exit` to leave again.
-
-3. **HyperFrames' skills and its video browser:**
-
-   ```bash
-   npx --yes hyperframes skills
-   npx --yes hyperframes browser ensure
-   ```
-
-   The first command installs HyperFrames' instructions for Claude (into your user folder, under `.claude/skills` and `.agents/skills`). The second downloads the small browser HyperFrames uses to film each frame (about 115 MB). HyperFrames sends anonymous usage statistics; to turn that off, run `npx --yes hyperframes telemetry disable`.
-
-4. **Sign in to GitHub** (needed while this plugin's repository is private; skip it once the repository is public):
-
-   ```bash
-   gh auth login
-   gh auth setup-git
-   ```
-
-   For `gh auth login`, choose GitHub.com, HTTPS, "Yes" to authenticate Git, and "Login with a web browser", then follow the browser steps. Your GitHub account must have access to the repository.
-
-5. **The plugin:**
-
-   ```bash
-   claude plugin marketplace add wergle3232/claude-motion-graphics
-   claude plugin install motion-graphics-studio@motion-graphics-studio
-   ```
-
-   The first prints `Successfully added marketplace: motion-graphics-studio`; the second prints `Successfully installed plugin: motion-graphics-studio@motion-graphics-studio`. (You can also type the same two commands inside Claude Code with a slash in front: `/plugin marketplace add wergle3232/claude-motion-graphics`, then `/plugin install motion-graphics-studio@motion-graphics-studio`.)
-
-   To install from a branch other than main, for example while testing, add `#` and the branch name to the first command: `claude plugin marketplace add wergle3232/claude-motion-graphics#branch-name`.
-
-6. **Check it:**
-
-   ```bash
-   claude plugin list
-   ```
-
-   It should list `motion-graphics-studio@motion-graphics-studio` as enabled.
-
-## First run
-
-1. Make a folder for your motion work, for example `my-motion` in your Documents, and open Claude Code in it:
-
-   ```bash
-   mkdir ~/Documents/my-motion
-   cd ~/Documents/my-motion
-   claude
-   ```
-
-   (On Windows, use `mkdir $HOME\Documents\my-motion` and `cd $HOME\Documents\my-motion`.)
-
-   **Or use the Claude desktop app** (Windows or Mac): open the **Code** tab, start a **local** session (not a cloud one) and choose your `my-motion` folder. A plugin installed with the commands above is available there too, because the desktop app and the terminal share the same plugin settings. To check, click **+** next to the prompt box, then **Plugins**, then **Manage plugins**: `motion-graphics-studio` should be listed and on. The desktop app also needs Node, FFmpeg, Git and HyperFrames' skills from the steps above, because the plugin uses them on your computer.
-
-2. **Set up your brand.** Type:
-
-   > Set up my brand from https://your-website.com
-
-   or, without a website:
-
-   > Set up my brand
-
-   Claude reads your site (colours, fonts, the look) or asks you five short questions, then writes `brand.md` in your folder and shows you what it found. Check the colours and fonts, and say if anything is wrong. If you have logo files or your brand's own font files, put them in a `brand` folder inside `my-motion` first.
-
-   Claude will ask your permission before running commands. You can say yes each time, or choose "don't ask again" for commands you are happy with.
+Claude asks your permission before running commands. You can say yes each time, or choose "don't ask again" for commands you are happy with.
 
 ## Making a piece
 
@@ -225,11 +114,11 @@ To spend less: keep pieces short, ask for one format first and add the others on
 
 **"command not found" or "not recognized" after installing something.** Close Terminal or PowerShell and open it again. On Windows, if `ffmpeg` is still not found, sign out of Windows and back in.
 
-**`claude plugin marketplace add` fails with "Repository not found", "Authentication failed" or a git error.** The repository is private: run step 4 of [Both systems](#both-systems-hyperframes-and-the-plugin) (`gh auth login`, then `gh auth setup-git`) with a GitHub account that has access, then try again.
+**Adding the plugin fails with "Repository not found", "Authentication failed" or a git error.** The repository is private, so your computer must be signed in to GitHub with an account that has access. Ask Claude: "Sign me in to GitHub so git can reach a private repository." It installs the GitHub tool (`winget install --id GitHub.cli -e` on Windows, `brew install gh` on a Mac) and runs `gh auth login` and `gh auth setup-git`; you approve in your browser. Then try step 1 again.
 
 **The plugin installed but Claude does not seem to use it.** Close Claude Code and start it again in your motion folder. In Claude Code, `/plugin` shows installed plugins; `motion-graphics-studio` should be enabled. You can also call it directly: `/motion-graphics-studio:motion-studio make a 10-second logo sting`.
 
-**Claude says HyperFrames' skills are missing.** Run `npx --yes hyperframes skills` again, then restart Claude Code.
+**Claude says something is missing** (Node, FFmpeg or HyperFrames). Say "Set up motion graphics" again, or follow [Manual setup](#manual-setup), then start a new session.
 
 **A render fails or is very slow.** Run `npx --yes hyperframes doctor` and read the lines with a cross. Rendering a 15-second video takes about 30 seconds to a few minutes depending on your computer; a full-quality render takes longer than a draft. Close other heavy programs if your computer has 8 GB of memory or less.
 
@@ -238,6 +127,36 @@ To spend less: keep pieces short, ask for one format first and add the others on
 **Updating the plugin.** `claude plugin marketplace update motion-graphics-studio`, then restart Claude Code.
 
 **Removing it.** `claude plugin uninstall motion-graphics-studio@motion-graphics-studio`. Your motion folder and its files stay where they are.
+
+## Manual setup
+
+Only needed if the automatic setup in step 2 does not work. Install these, then start a new Claude session.
+
+**Windows** (in PowerShell: press the Windows key, type PowerShell, press Enter):
+
+```powershell
+winget install --id OpenJS.NodeJS.LTS -e
+winget install --id Gyan.FFmpeg -e
+winget install --id Git.Git -e
+```
+
+Close PowerShell and open it again so it finds the new programs.
+
+**Mac** (in Terminal: Cmd + Space, type Terminal, Enter). If `brew --version` does not print a version, install Homebrew first with `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"` and run the "Next steps" lines it prints. Then:
+
+```bash
+brew install node ffmpeg git
+```
+
+**Both**, once those are in:
+
+```bash
+node --version
+npx --yes hyperframes skills
+npx --yes hyperframes browser ensure
+```
+
+`node --version` must print v22 or higher (HyperFrames needs it). The other two install HyperFrames' instructions for Claude and the browser it renders with (about 115 MB). HyperFrames sends anonymous usage statistics; `npx --yes hyperframes telemetry disable` turns that off.
 
 ## Other tools
 
