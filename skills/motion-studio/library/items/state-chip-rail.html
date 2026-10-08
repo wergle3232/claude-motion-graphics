@@ -1,5 +1,9 @@
 <!DOCTYPE html>
 <!--
+  From HyperFrames (Apache-2.0, see ../THIRD-PARTY-NOTICES.md). Changed here: brand
+  tokens come from the piece's brand.css (it defines --fg, --bg, --brand, --accent,
+  --font-display and the rest from brand.md); accent option labels renamed.
+
   state-chip-rail: HyperFrames video primitive (product demo / state machine)
 
   A rail of mono status chips advances a data-state snap machine on a cue
@@ -47,7 +51,7 @@
     { &quot;id&quot;: &quot;times&quot;, &quot;type&quot;: &quot;string&quot;, &quot;role&quot;: &quot;timing&quot;, &quot;label&quot;: &quot;Times&quot;, &quot;description&quot;: &quot;Comma-separated activation times in seconds, one per advance (state 1 onward). Blank entries use the default even rhythm.&quot;, &quot;default&quot;: &quot;&quot; },
     { &quot;id&quot;: &quot;badge_state&quot;, &quot;type&quot;: &quot;number&quot;, &quot;role&quot;: &quot;content&quot;, &quot;label&quot;: &quot;Badge state&quot;, &quot;description&quot;: &quot;Index of the state the badges pop beside.&quot;, &quot;default&quot;: 1, &quot;min&quot;: 0, &quot;max&quot;: 7, &quot;step&quot;: 1 },
     { &quot;id&quot;: &quot;badges&quot;, &quot;type&quot;: &quot;string&quot;, &quot;role&quot;: &quot;content&quot;, &quot;label&quot;: &quot;Badges&quot;, &quot;description&quot;: &quot;Comma-separated badge labels shown beside the badge state. Empty disables.&quot;, &quot;default&quot;: &quot;&quot; },
-    { &quot;id&quot;: &quot;accent&quot;, &quot;type&quot;: &quot;enum&quot;, &quot;role&quot;: &quot;style&quot;, &quot;label&quot;: &quot;Accent&quot;, &quot;description&quot;: &quot;Accent token family used by the active chip.&quot;, &quot;default&quot;: &quot;green&quot;, &quot;options&quot;: [{ &quot;value&quot;: &quot;green&quot;, &quot;label&quot;: &quot;Green&quot; }, { &quot;value&quot;: &quot;blue&quot;, &quot;label&quot;: &quot;Blue&quot; }, { &quot;value&quot;: &quot;violet&quot;, &quot;label&quot;: &quot;Violet&quot; }] },
+    { &quot;id&quot;: &quot;accent&quot;, &quot;type&quot;: &quot;enum&quot;, &quot;role&quot;: &quot;style&quot;, &quot;label&quot;: &quot;Accent&quot;, &quot;description&quot;: &quot;Accent token family used by the active chip.&quot;, &quot;default&quot;: &quot;green&quot;, &quot;options&quot;: [{ &quot;value&quot;: &quot;green&quot;, &quot;label&quot;: &quot;Brand accent (--brand)&quot; }, { &quot;value&quot;: &quot;blue&quot;, &quot;label&quot;: &quot;Second accent (--accent)&quot; }, { &quot;value&quot;: &quot;violet&quot;, &quot;label&quot;: &quot;Third accent (--accent-2)&quot; }] },
     { &quot;id&quot;: &quot;exit&quot;, &quot;type&quot;: &quot;enum&quot;, &quot;role&quot;: &quot;timing&quot;, &quot;label&quot;: &quot;Exit&quot;, &quot;description&quot;: &quot;How the rail leaves the frame. Default none: the hold ends the film.&quot;, &quot;default&quot;: &quot;none&quot;, &quot;options&quot;: [{ &quot;value&quot;: &quot;none&quot;, &quot;label&quot;: &quot;None&quot; }, { &quot;value&quot;: &quot;fade&quot;, &quot;label&quot;: &quot;Fade&quot; }, { &quot;value&quot;: &quot;up&quot;, &quot;label&quot;: &quot;Up&quot; }] }
   ]">
   <head>

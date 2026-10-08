@@ -1,19 +1,20 @@
 <!doctype html>
 <!--
-  se-particle-burst (StackEngine library)
+  se-particle-burst (claude-motion-graphics library)
   Job: a dramatic exit for a word. The word turns to glitter, bursts into coloured
   sparkles while it glows, then smears away as smoke.
-  From: Apple test 1, shot 5 "Prompt it." (built by hand on a canvas; HyperFrames'
+  From: an early test piece, "Prompt it." (built by hand on a canvas; HyperFrames'
   particle-text-dissolve does a similar burst once its timing is fixed, see library.md).
   Settings: text, size (px), colours (comma-separated sparkle colours), glow (the
   colour the word flashes), smoke (colour), length (seconds). Base 1.75 s.
+  Brand: empty colour settings take the piece's brand.css (--brand-*); fonts too.
 -->
 <html lang="en" data-composition-id="se-particle-burst" data-composition-variables='[
   {"id":"text","type":"string","label":"Text","default":"Prompt it."},
   {"id":"size","type":"number","label":"Text size","default":170,"min":40,"max":400,"unit":"px"},
-  {"id":"colours","type":"string","label":"Sparkle colours","default":"#00e87b,#8b5cf6,#f5f5f5,#7af7c0"},
-  {"id":"glow","type":"color","label":"Glow colour","default":"#00e87b"},
-  {"id":"smoke","type":"color","label":"Smoke colour","default":"#6a4bb0"},
+  {"id":"colours","type":"string","label":"Sparkle colours (empty: brand)","default":""},
+  {"id":"glow","type":"color","label":"Glow colour (empty: brand)","default":""},
+  {"id":"smoke","type":"color","label":"Smoke colour (empty: brand)","default":""},
   {"id":"length","type":"number","label":"Length","default":1.75,"min":0.3,"max":10,"step":0.05,"unit":"s"}
 ]'>
   <body>
@@ -21,7 +22,7 @@
       <div id="root" data-composition-id="se-particle-burst" data-width="1920" data-height="1080">
         <style>
           #root { position: absolute; inset: 0; overflow: hidden; }
-          .se-pb-word { position: absolute; left: 0; top: 0; font-family: "Inter", sans-serif; color: #f5f5f5; font-weight: 600; letter-spacing: -0.02em; line-height: 1; white-space: nowrap; }
+          .se-pb-word { position: absolute; left: 0; top: 0; font-family: var(--brand-font-display, "Inter"), sans-serif; color: var(--brand-text, #f5f5f5); font-weight: 600; letter-spacing: -0.02em; line-height: 1; white-space: nowrap; }
           .se-pb-canvas { position: absolute; left: 0; top: 0; }
         </style>
         <div class="se-pb-word"></div>
@@ -32,12 +33,14 @@
             var ID = "se-particle-burst", BASE = 1.75;
             // HyperFrames runs this with a document scoped to this copy, so "root" is this copy's root.
             var root = document.getElementById("root");
+            // Brand: colours and fonts come from the piece's brand.css (--brand-*). A setting passed in wins.
+            var brand = function (n, d) { var x = getComputedStyle(root).getPropertyValue("--brand-" + n).trim(); return x || d; };
             var v = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
             var str = function (k, d) { return v[k] == null || v[k] === "" ? d : String(v[k]); };
             var num = function (k, d) { var n = Number(v[k]); return Number.isFinite(n) && n > 0 ? n : d; };
             var text = str("text", "Prompt it."), size = num("size", 170), length = num("length", BASE);
-            var pal = str("colours", "#00e87b,#8b5cf6,#f5f5f5,#7af7c0").split(",").map(function (c) { return c.trim(); });
-            var glow = str("glow", "#00e87b"), smoke = str("smoke", "#6a4bb0");
+            var pal = str("colours", [brand("accent", "#00e87b"), brand("accent-2", "#8b5cf6"), brand("text", "#f5f5f5")].join(",")).split(",").map(function (c) { return c.trim(); });
+            var glow = str("glow", brand("accent", "#00e87b")), smoke = str("smoke", brand("accent-2", "#6a4bb0"));
             var seed = 0x5ec0de;
             var rnd = function () { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
 
@@ -53,7 +56,7 @@
               // Sample the word's pixels once into particles.
               var off = document.createElement("canvas"); off.width = W; off.height = H;
               var octx = off.getContext("2d");
-              octx.font = "600 " + size + "px Inter"; octx.textBaseline = "top"; octx.fillStyle = "#fff";
+              octx.font = "600 " + size + "px " + getComputedStyle(word).fontFamily; octx.textBaseline = "top"; octx.fillStyle = "#fff";
               octx.fillText(text, wx, wy + 4 * k);
               var data = octx.getImageData(0, 0, W, H).data, parts = [], step = Math.max(3, Math.round(5 * k));
               for (var y = Math.max(0, Math.floor(wy - 20)); y < Math.min(H, wy + wh + 20); y += step) {

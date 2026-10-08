@@ -1,5 +1,9 @@
 <!DOCTYPE html>
 <!--
+  From HyperFrames (Apache-2.0, see ../THIRD-PARTY-NOTICES.md). Changed here: brand
+  tokens come from the piece's brand.css (it defines --fg, --bg, --brand, --accent,
+  --font-display and the rest from brand.md); accent option labels renamed.
+
   grid-card-assemble: HyperFrames video primitive (layout / feature tour)
 
   N capability cards stagger-assemble into a grid or a vertical list. Every
@@ -61,7 +65,7 @@
     { &quot;id&quot;: &quot;layout&quot;, &quot;type&quot;: &quot;enum&quot;, &quot;role&quot;: &quot;layout&quot;, &quot;label&quot;: &quot;Layout&quot;, &quot;description&quot;: &quot;Grid wraps by columns; list stacks vertically.&quot;, &quot;default&quot;: &quot;grid&quot;, &quot;options&quot;: [{ &quot;value&quot;: &quot;grid&quot;, &quot;label&quot;: &quot;Grid&quot; }, { &quot;value&quot;: &quot;list&quot;, &quot;label&quot;: &quot;List&quot; }] },
     { &quot;id&quot;: &quot;columns&quot;, &quot;type&quot;: &quot;number&quot;, &quot;role&quot;: &quot;layout&quot;, &quot;label&quot;: &quot;Columns&quot;, &quot;description&quot;: &quot;Grid column count (grid layout only). 0 picks automatically: one row up to 3 items, then ceil(sqrt(N)).&quot;, &quot;default&quot;: 0, &quot;min&quot;: 0, &quot;max&quot;: 4, &quot;step&quot;: 1 },
     { &quot;id&quot;: &quot;cues&quot;, &quot;type&quot;: &quot;string&quot;, &quot;role&quot;: &quot;timing&quot;, &quot;label&quot;: &quot;Cues&quot;, &quot;description&quot;: &quot;Comma-separated per-item entrance times in seconds. Blank entries use the default cascade.&quot;, &quot;default&quot;: &quot;&quot; },
-    { &quot;id&quot;: &quot;accent&quot;, &quot;type&quot;: &quot;enum&quot;, &quot;role&quot;: &quot;style&quot;, &quot;label&quot;: &quot;Accent&quot;, &quot;description&quot;: &quot;Accent token family used by the card icons.&quot;, &quot;default&quot;: &quot;green&quot;, &quot;options&quot;: [{ &quot;value&quot;: &quot;green&quot;, &quot;label&quot;: &quot;Green&quot; }, { &quot;value&quot;: &quot;blue&quot;, &quot;label&quot;: &quot;Blue&quot; }, { &quot;value&quot;: &quot;violet&quot;, &quot;label&quot;: &quot;Violet&quot; }] },
+    { &quot;id&quot;: &quot;accent&quot;, &quot;type&quot;: &quot;enum&quot;, &quot;role&quot;: &quot;style&quot;, &quot;label&quot;: &quot;Accent&quot;, &quot;description&quot;: &quot;Accent token family used by the card icons.&quot;, &quot;default&quot;: &quot;green&quot;, &quot;options&quot;: [{ &quot;value&quot;: &quot;green&quot;, &quot;label&quot;: &quot;Brand accent (--brand)&quot; }, { &quot;value&quot;: &quot;blue&quot;, &quot;label&quot;: &quot;Second accent (--accent)&quot; }, { &quot;value&quot;: &quot;violet&quot;, &quot;label&quot;: &quot;Third accent (--accent-2)&quot; }] },
     { &quot;id&quot;: &quot;exit&quot;, &quot;type&quot;: &quot;enum&quot;, &quot;role&quot;: &quot;timing&quot;, &quot;label&quot;: &quot;Exit&quot;, &quot;description&quot;: &quot;How the assembled layout leaves the frame. Default none: the hold ends the film.&quot;, &quot;default&quot;: &quot;none&quot;, &quot;options&quot;: [{ &quot;value&quot;: &quot;none&quot;, &quot;label&quot;: &quot;None&quot; }, { &quot;value&quot;: &quot;fade&quot;, &quot;label&quot;: &quot;Fade&quot; }, { &quot;value&quot;: &quot;up&quot;, &quot;label&quot;: &quot;Up&quot; }] }
   ]">
   <head>

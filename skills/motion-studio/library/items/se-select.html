@@ -1,17 +1,18 @@
 <!doctype html>
 <!--
-  se-select (StackEngine library)
+  se-select (claude-motion-graphics library)
   Job: shows picking or choosing something. A pointer drags across a grey line and
   each letter lights up as it is passed, then the whole line pops and glows.
-  From: Apple test 1, shot 8 "Select it." (built by hand).
+  From: an early test piece, "Select it." (built by hand).
   Settings: text, size (px), accent (the selected colour), length (seconds; the
   whole move stretches or shrinks to fit). Base length 0.62 s.
   Use: mount as a sub-composition (see library.md).
+  Brand: empty colour settings take the piece's brand.css (--brand-*); fonts too.
 -->
 <html lang="en" data-composition-id="se-select" data-composition-variables='[
   {"id":"text","type":"string","label":"Text","default":"Select it."},
   {"id":"size","type":"number","label":"Text size","default":185,"min":40,"max":400,"unit":"px"},
-  {"id":"accent","type":"color","label":"Selected colour","default":"#00e87b"},
+  {"id":"accent","type":"color","label":"Selected colour (empty: brand)","default":""},
   {"id":"length","type":"number","label":"Length","default":0.62,"min":0.2,"max":10,"step":0.05,"unit":"s"}
 ]'>
   <body>
@@ -19,10 +20,10 @@
       <div id="root" data-composition-id="se-select" data-width="1920" data-height="1080">
         <style>
           #root { position: absolute; inset: 0; overflow: hidden; }
-          .se-select-word { position: absolute; left: 0; top: 0; font-family: "Inter", sans-serif; color: #6b6b6b; font-weight: 600; letter-spacing: -0.02em; line-height: 1; white-space: nowrap; }
+          .se-select-word { position: absolute; left: 0; top: 0; font-family: var(--brand-font-display, "Inter"), sans-serif; color: var(--brand-muted, #6b6b6b); font-weight: 600; letter-spacing: -0.02em; line-height: 1; white-space: nowrap; }
           .se-select-word span { display: inline-block; white-space: pre; }
-          .se-select-pointer { position: absolute; left: 0; top: 0; width: 34px; height: 34px; border: 3px solid #f5f5f5; border-radius: 50%; opacity: 0; }
-          .se-select-pointer::after { content: ""; position: absolute; left: 11px; top: 11px; width: 6px; height: 6px; border-radius: 50%; background: #f5f5f5; }
+          .se-select-pointer { position: absolute; left: 0; top: 0; width: 34px; height: 34px; border: 3px solid var(--brand-text, #f5f5f5); border-radius: 50%; opacity: 0; }
+          .se-select-pointer::after { content: ""; position: absolute; left: 11px; top: 11px; width: 6px; height: 6px; border-radius: 50%; background: var(--brand-text, #f5f5f5); }
         </style>
         <div class="se-select-word"></div>
         <div class="se-select-pointer"></div>
@@ -32,10 +33,12 @@
             var ID = "se-select", BASE = 0.62;
             // HyperFrames runs this with a document scoped to this copy, so "root" is this copy's root.
             var root = document.getElementById("root");
+            // Brand: colours and fonts come from the piece's brand.css (--brand-*). A setting passed in wins.
+            var brand = function (n, d) { var x = getComputedStyle(root).getPropertyValue("--brand-" + n).trim(); return x || d; };
             var v = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
             var str = function (k, d) { return v[k] == null || v[k] === "" ? d : String(v[k]); };
             var num = function (k, d) { var n = Number(v[k]); return Number.isFinite(n) && n > 0 ? n : d; };
-            var text = str("text", "Select it."), size = num("size", 185), accent = str("accent", "#00e87b"), length = num("length", BASE);
+            var text = str("text", "Select it."), size = num("size", 185), accent = str("accent", brand("accent", "#00e87b")), length = num("length", BASE);
 
             function build() {
               var W = root.offsetWidth || 1920, H = root.offsetHeight || 1080, cx = W / 2, cy = H / 2;

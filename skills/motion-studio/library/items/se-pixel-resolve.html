@@ -1,16 +1,17 @@
 <!doctype html>
 <!--
-  se-pixel-resolve (StackEngine library)
+  se-pixel-resolve (claude-motion-graphics library)
   Job: shows "better quality" or a reveal. The words start as big glowing blocks,
   get finer in three steps, then the clean words resolve from a blur.
-  From: Apple test 2, shot 1 "Upscale it." (the blocky steps by hand; the resolve is
+  From: an early test piece, "Upscale it." (the blocky steps by hand; the resolve is
   HyperFrames' focus-blur-resolve recipe, Apache-2.0, run on our timing).
   Settings: text, size (px), glow (block colour), length (seconds). Base 0.84 s.
+  Brand: empty colour settings take the piece's brand.css (--brand-*); fonts too.
 -->
 <html lang="en" data-composition-id="se-pixel-resolve" data-composition-variables='[
   {"id":"text","type":"string","label":"Text","default":"Upscale it."},
   {"id":"size","type":"number","label":"Text size","default":230,"min":40,"max":400,"unit":"px"},
-  {"id":"glow","type":"color","label":"Block colour","default":"#00e87b"},
+  {"id":"glow","type":"color","label":"Block colour (empty: brand)","default":""},
   {"id":"length","type":"number","label":"Length","default":0.84,"min":0.2,"max":10,"step":0.05,"unit":"s"}
 ]'>
   <body>
@@ -19,7 +20,7 @@
         <style>
           #root { position: absolute; inset: 0; overflow: hidden; }
           .se-pr-canvas { position: absolute; left: 0; top: 0; }
-          .se-pr-words { position: absolute; left: 0; top: 0; display: inline-flex; font-family: "Inter", sans-serif; color: #f5f5f5; font-weight: 600; letter-spacing: -0.02em; line-height: 1; white-space: nowrap; }
+          .se-pr-words { position: absolute; left: 0; top: 0; display: inline-flex; font-family: var(--brand-font-display, "Inter"), sans-serif; color: var(--brand-text, #f5f5f5); font-weight: 600; letter-spacing: -0.02em; line-height: 1; white-space: nowrap; }
           .se-pr-words span { display: inline-block; filter: blur(var(--se-pr-blur, 0px)); transform: scale(var(--se-pr-scale, 1)); }
         </style>
         <canvas class="se-pr-canvas"></canvas>
@@ -30,10 +31,12 @@
             var ID = "se-pixel-resolve", BASE = 0.84;
             // HyperFrames runs this with a document scoped to this copy, so "root" is this copy's root.
             var root = document.getElementById("root");
+            // Brand: colours and fonts come from the piece's brand.css (--brand-*). A setting passed in wins.
+            var brand = function (n, d) { var x = getComputedStyle(root).getPropertyValue("--brand-" + n).trim(); return x || d; };
             var v = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
             var str = function (k, d) { return v[k] == null || v[k] === "" ? d : String(v[k]); };
             var num = function (k, d) { var n = Number(v[k]); return Number.isFinite(n) && n > 0 ? n : d; };
-            var text = str("text", "Upscale it."), size = num("size", 230), glow = str("glow", "#00e87b"), length = num("length", BASE);
+            var text = str("text", "Upscale it."), size = num("size", 230), glow = str("glow", brand("accent", "#00e87b")), length = num("length", BASE);
 
             function build() {
               var W = root.offsetWidth || 1920, H = root.offsetHeight || 1080, k = size / 230;
@@ -46,7 +49,7 @@
               var ctx = cv.getContext("2d");
               var src = document.createElement("canvas"); src.width = W; src.height = H;
               var sctx = src.getContext("2d");
-              sctx.font = "600 " + size + "px Inter"; sctx.textAlign = "center"; sctx.textBaseline = "middle"; sctx.fillStyle = "#fff";
+              sctx.font = "600 " + size + "px " + getComputedStyle(words).fontFamily; sctx.textAlign = "center"; sctx.textBaseline = "middle"; sctx.fillStyle = "#fff";
               sctx.fillText(text, W / 2, H / 2 + 5 * k);
               var tiny = document.createElement("canvas"), tctx = tiny.getContext("2d");
               var paintBlocks = function (b) {

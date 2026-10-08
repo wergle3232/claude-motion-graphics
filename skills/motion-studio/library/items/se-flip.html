@@ -1,10 +1,11 @@
 <!doctype html>
 <!--
-  se-flip (StackEngine library)
+  se-flip (claude-motion-graphics library)
   Job: shows something repeating or looping. The first word flips round to show
   its back and comes back, the rest of the line types in after it, twice.
-  From: Apple test 1, shot 7 "Loop it." (built by hand: a 3D flip played twice).
+  From: an early test piece, "Loop it." (built by hand: a 3D flip played twice).
   Settings: word, rest, size (px), length (seconds; the move fits it). Base 0.78 s.
+  Brand: empty colour settings take the piece's brand.css (--brand-*); fonts too.
 -->
 <html lang="en" data-composition-id="se-flip" data-composition-variables='[
   {"id":"word","type":"string","label":"Word that flips","default":"Loop"},
@@ -17,7 +18,7 @@
       <div id="root" data-composition-id="se-flip" data-width="1920" data-height="1080">
         <style>
           #root { position: absolute; inset: 0; overflow: hidden; }
-          .se-flip-line { position: absolute; left: 0; top: 0; perspective: 900px; font-family: "Inter", sans-serif; color: #f5f5f5; font-weight: 600; letter-spacing: -0.02em; line-height: 1; white-space: nowrap; }
+          .se-flip-line { position: absolute; left: 0; top: 0; perspective: 900px; font-family: var(--brand-font-display, "Inter"), sans-serif; color: var(--brand-text, #f5f5f5); font-weight: 600; letter-spacing: -0.02em; line-height: 1; white-space: nowrap; }
           .se-flip-word { display: inline-block; transform-origin: 50% 50%; }
           .se-flip-rest span { display: inline-block; white-space: pre; }
         </style>
@@ -28,6 +29,8 @@
             var ID = "se-flip", BASE = 0.78;
             // HyperFrames runs this with a document scoped to this copy, so "root" is this copy's root.
             var root = document.getElementById("root");
+            // Brand: colours and fonts come from the piece's brand.css (--brand-*). A setting passed in wins.
+            var brand = function (n, d) { var x = getComputedStyle(root).getPropertyValue("--brand-" + n).trim(); return x || d; };
             var v = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
             var str = function (k, d) { return v[k] == null || v[k] === "" ? d : String(v[k]); };
             var num = function (k, d) { var n = Number(v[k]); return Number.isFinite(n) && n > 0 ? n : d; };

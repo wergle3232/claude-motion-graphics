@@ -1,16 +1,17 @@
 <!doctype html>
 <!--
-  se-crumple-bin (StackEngine library)
+  se-crumple-bin (claude-motion-graphics library)
   Job: throws something away; a "no" or "scrap that". A bin rises under the words,
   they crumple into a paper ball that drops in, the bin fills with colour and sinks.
-  From: Apple test 1, shot 10 "Scrap it." (built by hand; no library match).
+  From: an early test piece, "Scrap it." (built by hand; no library match).
   Settings: text, size (px), scraps (comma-separated colours of the scraps in the
   bin), length (seconds). Base 2.14 s.
+  Brand: empty colour settings take the piece's brand.css (--brand-*); fonts too.
 -->
 <html lang="en" data-composition-id="se-crumple-bin" data-composition-variables='[
   {"id":"text","type":"string","label":"Text","default":"Scrap it."},
   {"id":"size","type":"number","label":"Text size","default":176,"min":40,"max":400,"unit":"px"},
-  {"id":"scraps","type":"string","label":"Scrap colours","default":"#00e87b,#8b5cf6,#f5f5f5,#c9b8ff"},
+  {"id":"scraps","type":"string","label":"Scrap colours (empty: brand)","default":""},
   {"id":"length","type":"number","label":"Length","default":2.14,"min":0.4,"max":10,"step":0.05,"unit":"s"}
 ]'>
   <body>
@@ -18,7 +19,7 @@
       <div id="root" data-composition-id="se-crumple-bin" data-width="1920" data-height="1080">
         <style>
           #root { position: absolute; inset: 0; overflow: hidden; }
-          .se-cb-word { position: absolute; left: 0; top: 0; font-family: "Inter", sans-serif; color: #f5f5f5; font-weight: 600; letter-spacing: -0.02em; line-height: 1; white-space: nowrap; transform-origin: 50% 50%; }
+          .se-cb-word { position: absolute; left: 0; top: 0; font-family: var(--brand-font-display, "Inter"), sans-serif; color: var(--brand-text, #f5f5f5); font-weight: 600; letter-spacing: -0.02em; line-height: 1; white-space: nowrap; transform-origin: 50% 50%; }
           .se-cb-can, .se-cb-ball { position: absolute; left: 0; top: 0; overflow: visible; }
         </style>
         <div class="se-cb-word"></div>
@@ -45,11 +46,13 @@
             var ID = "se-crumple-bin", BASE = 2.14;
             // HyperFrames runs this with a document scoped to this copy, so "root" is this copy's root.
             var root = document.getElementById("root");
+            // Brand: colours and fonts come from the piece's brand.css (--brand-*). A setting passed in wins.
+            var brand = function (n, d) { var x = getComputedStyle(root).getPropertyValue("--brand-" + n).trim(); return x || d; };
             var v = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
             var str = function (k, d) { return v[k] == null || v[k] === "" ? d : String(v[k]); };
             var num = function (k, d) { var n = Number(v[k]); return Number.isFinite(n) && n > 0 ? n : d; };
             var text = str("text", "Scrap it."), size = num("size", 176), length = num("length", BASE);
-            var scrapColours = str("scraps", "#00e87b,#8b5cf6,#f5f5f5,#c9b8ff").split(",").map(function (c) { return c.trim(); });
+            var scrapColours = str("scraps", [brand("accent", "#00e87b"), brand("accent-2", "#8b5cf6"), brand("text", "#f5f5f5"), brand("muted", "#c9b8ff")].join(",")).split(",").map(function (c) { return c.trim(); });
 
             function build() {
               var W = root.offsetWidth || 1920, H = root.offsetHeight || 1080, k = size / 176;

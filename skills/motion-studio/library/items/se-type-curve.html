@@ -1,16 +1,17 @@
 <!doctype html>
 <!--
-  se-type-curve (StackEngine library)
+  se-type-curve (claude-motion-graphics library)
   Job: shows writing or drafting. A caret blinks, the words type in (in the accent,
   turning white), then the line bends onto a rising curve as a pen line draws under it.
-  From: Apple test 1, shot 9 "Write it." (built by hand; the curve is HyperFrames'
+  From: an early test piece, "Write it." (built by hand; the curve is HyperFrames'
   hw-path-text idea on an SVG text path).
   Settings: text, size (px), accent (caret, typing colour and pen line), length (seconds). Base 1.12 s.
+  Brand: empty colour settings take the piece's brand.css (--brand-*); fonts too.
 -->
 <html lang="en" data-composition-id="se-type-curve" data-composition-variables='[
   {"id":"text","type":"string","label":"Text","default":"Write it."},
   {"id":"size","type":"number","label":"Text size","default":160,"min":40,"max":400,"unit":"px"},
-  {"id":"accent","type":"color","label":"Accent","default":"#8b5cf6"},
+  {"id":"accent","type":"color","label":"Accent (empty: brand)","default":""},
   {"id":"length","type":"number","label":"Length","default":1.12,"min":0.3,"max":10,"step":0.05,"unit":"s"}
 ]'>
   <body>
@@ -24,7 +25,7 @@
         <svg class="se-tc-svg" xmlns="http://www.w3.org/2000/svg">
           <path class="se-tc-path" d="" fill="none" stroke="none" />
           <path class="se-tc-pen" d="" fill="none" stroke-width="5" stroke-linecap="round" />
-          <text class="se-tc-text" font-family="Inter" font-weight="600" fill="#f5f5f5" letter-spacing="-2"><textPath class="se-tc-tp"></textPath></text>
+          <text class="se-tc-text" font-weight="600" style="font-family: var(--brand-font-display, 'Inter'), sans-serif; fill: var(--brand-text, #f5f5f5)" letter-spacing="-2"><textPath class="se-tc-tp"></textPath></text>
         </svg>
         <div class="se-tc-caret"></div>
         <script>
@@ -33,10 +34,12 @@
             var ID = "se-type-curve", BASE = 1.12;
             // HyperFrames runs this with a document scoped to this copy, so "root" is this copy's root.
             var root = document.getElementById("root");
+            // Brand: colours and fonts come from the piece's brand.css (--brand-*). A setting passed in wins.
+            var brand = function (n, d) { var x = getComputedStyle(root).getPropertyValue("--brand-" + n).trim(); return x || d; };
             var v = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
             var str = function (k, d) { return v[k] == null || v[k] === "" ? d : String(v[k]); };
             var num = function (k, d) { var n = Number(v[k]); return Number.isFinite(n) && n > 0 ? n : d; };
-            var text = str("text", "Write it."), size = num("size", 160), accent = str("accent", "#8b5cf6"), length = num("length", BASE);
+            var text = str("text", "Write it."), size = num("size", 160), accent = str("accent", brand("accent", "#8b5cf6")), length = num("length", BASE);
             var NS = "http://www.w3.org/2000/svg";
 
             function build() {
@@ -69,7 +72,7 @@
               var step = 0.045;
               chars.forEach(function (c, i) {
                 tl.fromTo(c, { opacity: 0, fill: accent }, { opacity: 1, duration: 0.01, immediateRender: false }, 0.15 + i * step);
-                tl.to(c, { fill: "#f5f5f5", duration: 0.15 }, 0.15 + i * step + 0.12);
+                tl.to(c, { fill: brand("text", "#f5f5f5"), duration: 0.15 }, 0.15 + i * step + 0.12);
               });
               tl.to(caret, { x: wx + L + 8, duration: chars.length * step, ease: "steps(" + chars.length + ")" }, 0.15);
               tl.set(caret, { opacity: 0 }, 0.15 + chars.length * step + 0.05);

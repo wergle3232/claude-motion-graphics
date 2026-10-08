@@ -1,0 +1,74 @@
+<!doctype html>
+<!--
+  lt-accent-underline (claude-motion-graphics library)
+  Job: a lower third over camera footage. The title rises into place, an accent line
+  draws under it from the left, the subtitle follows; at the end they leave in reverse.
+  Works on a transparent background, so it can be rendered as an overlay.
+  From: HyperFrames' lt-accent-underline registry item (Apache-2.0, see
+  ../THIRD-PARTY-NOTICES.md), reworked: made a mountable sub-composition, text and
+  side as settings, brand colours and fonts, exit fitted to the slot length.
+  Settings: title, subtitle, side (left or right), size (title px), accent, length
+  (seconds; the hold stretches, the moves keep their speed). Base 4.8 s.
+  Brand: empty colour settings take the piece's brand.css (--brand-*); fonts too.
+-->
+<html lang="en" data-composition-id="lt-accent-underline" data-composition-variables='[
+  {"id":"title","type":"string","label":"Title","default":"Alex Rivera"},
+  {"id":"subtitle","type":"string","label":"Subtitle","default":"Founder, Example Studio"},
+  {"id":"side","type":"string","label":"Side (left or right)","default":"left"},
+  {"id":"size","type":"number","label":"Title size","default":76,"min":36,"max":200,"unit":"px"},
+  {"id":"accent","type":"color","label":"Line colour (empty: brand)","default":""},
+  {"id":"length","type":"number","label":"Length","default":4.8,"min":1.6,"max":30,"step":0.1,"unit":"s"}
+]'>
+  <body>
+    <template>
+      <div id="root" data-composition-id="lt-accent-underline" data-width="1920" data-height="1080">
+        <style>
+          #root { position: absolute; inset: 0; overflow: hidden; }
+          .lt-box { position: absolute; bottom: 12%; display: flex; flex-direction: column; gap: 0.18em; }
+          .lt-title { font-family: var(--brand-font-display, "Oswald"), sans-serif; font-weight: 700; color: var(--brand-text, #ffffff); line-height: 0.96; white-space: nowrap; text-shadow: 0 2px 22px rgba(0, 0, 0, 0.45); }
+          .lt-rule { height: 0.08em; width: 100%; border-radius: 0.04em; }
+          .lt-sub { font-family: var(--brand-font-body, var(--brand-font-mono, "Space Mono")), sans-serif; font-size: 0.37em; color: var(--brand-text, #e7eaf0); line-height: 1.2; white-space: nowrap; text-shadow: 0 2px 16px rgba(0, 0, 0, 0.45); }
+        </style>
+        <div class="lt-box"><div class="lt-title"></div><div class="lt-rule"></div><div class="lt-sub"></div></div>
+        <script>
+          (function () {
+            "use strict";
+            var ID = "lt-accent-underline", BASE = 4.8;
+            // HyperFrames runs this with a document scoped to this copy, so "root" is this copy's root.
+            var root = document.getElementById("root");
+            // Brand: colours and fonts come from the piece's brand.css (--brand-*). A setting passed in wins.
+            var brand = function (n, d) { var x = getComputedStyle(root).getPropertyValue("--brand-" + n).trim(); return x || d; };
+            var v = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            var str = function (k, d) { return v[k] == null || v[k] === "" ? d : String(v[k]); };
+            var num = function (k, d) { var n = Number(v[k]); return Number.isFinite(n) && n > 0 ? n : d; };
+            var title = str("title", "Alex Rivera"), sub = str("subtitle", ""), side = str("side", "left");
+            var size = num("size", 76), accent = str("accent", brand("accent", "#46e5b7")), length = Math.max(1.6, num("length", BASE));
+
+            var box = root.querySelector(".lt-box"), t = root.querySelector(".lt-title"), rule = root.querySelector(".lt-rule"), s = root.querySelector(".lt-sub");
+            box.style.fontSize = size + "px";
+            t.textContent = title;
+            s.textContent = sub;
+            if (!sub) s.style.display = "none";
+            rule.style.background = accent;
+            // Keep clear of the 16:9 safe margin (96 px of 1920), whatever the host size.
+            if (side === "right") { box.style.right = "6.8%"; box.style.alignItems = "flex-end"; rule.style.transformOrigin = "100% 50%"; }
+            else { box.style.left = "6.8%"; box.style.alignItems = "flex-start"; rule.style.transformOrigin = "0% 50%"; }
+
+            var out = length - 0.55;
+            var tl = gsap.timeline({ paused: true });
+            tl.set(t, { y: 28, opacity: 0 }, 0).set(rule, { scaleX: 0 }, 0).set(s, { y: 16, opacity: 0 }, 0);
+            tl.to(t, { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 0.1);
+            tl.to(rule, { scaleX: 1, duration: 0.5, ease: "power4.out" }, 0.3);
+            tl.to(s, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.46);
+            tl.to(s, { opacity: 0, duration: 0.3, ease: "power2.in" }, out - 0.1);
+            tl.to(rule, { scaleX: 0, duration: 0.3, ease: "power2.in" }, out - 0.05);
+            tl.to(t, { y: -16, opacity: 0, duration: 0.32, ease: "power2.in" }, out);
+            tl.set({}, {}, length);
+            window.__timelines = window.__timelines || {};
+            window.__timelines[ID] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

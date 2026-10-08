@@ -1,19 +1,20 @@
 <!doctype html>
 <!--
-  se-price-shimmer (StackEngine library)
+  se-price-shimmer (claude-motion-graphics library)
   Job: makes a price or a number stand out. The first words appear, the rest types
   on a few letters at a time with the line staying centred, then one bright band of
   colour sweeps across the letters and the line settles white.
-  From: Apple test 2, shot 3 "Get it for $12.99/mo." (typing by hand; the sweep is
+  From: an early test piece, "Get it for $12.99/mo." (typing by hand; the sweep is
   HyperFrames' text-shimmer gradient, Apache-2.0, with its timing fixed).
   Settings: text, first (how many letters show at once), size (px), accent (sweep
   colour), length (seconds). Base 1.5 s.
+  Brand: empty colour settings take the piece's brand.css (--brand-*); fonts too.
 -->
 <html lang="en" data-composition-id="se-price-shimmer" data-composition-variables='[
   {"id":"text","type":"string","label":"Text","default":"Get it for $12.99/mo."},
   {"id":"first","type":"number","label":"Letters shown at once","default":6,"min":0,"max":60},
   {"id":"size","type":"number","label":"Text size","default":160,"min":40,"max":400,"unit":"px"},
-  {"id":"accent","type":"color","label":"Sweep colour","default":"#8b5cf6"},
+  {"id":"accent","type":"color","label":"Sweep colour (empty: brand)","default":""},
   {"id":"length","type":"number","label":"Length","default":1.5,"min":0.3,"max":10,"step":0.05,"unit":"s"}
 ]'>
   <body>
@@ -21,10 +22,10 @@
       <div id="root" data-composition-id="se-price-shimmer" data-width="1920" data-height="1080">
         <style>
           #root { position: absolute; inset: 0; overflow: hidden; }
-          .se-ps-line { position: absolute; left: 0; top: 0; font-family: "Inter", sans-serif; color: #f5f5f5; font-weight: 780; letter-spacing: -0.055em; line-height: 0.96; white-space: nowrap; }
+          .se-ps-line { position: absolute; left: 0; top: 0; font-family: var(--brand-font-display, "Inter"), sans-serif; color: var(--brand-text, #f5f5f5); font-weight: 780; letter-spacing: -0.055em; line-height: 0.96; white-space: nowrap; }
           .se-ps-line span { display: inline-block; white-space: pre; }
           .se-ps-shine {
-            position: absolute; left: 0; top: 0; font-family: "Inter", sans-serif; font-weight: 780; letter-spacing: -0.055em; line-height: 0.96; white-space: nowrap;
+            position: absolute; left: 0; top: 0; font-family: var(--brand-font-display, "Inter"), sans-serif; font-weight: 780; letter-spacing: -0.055em; line-height: 0.96; white-space: nowrap;
             color: transparent; background-repeat: no-repeat; background-size: 300% 100%; background-position: 100% 50%;
             -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; opacity: 0;
           }
@@ -37,18 +38,20 @@
             var ID = "se-price-shimmer", BASE = 1.5;
             // HyperFrames runs this with a document scoped to this copy, so "root" is this copy's root.
             var root = document.getElementById("root");
+            // Brand: colours and fonts come from the piece's brand.css (--brand-*). A setting passed in wins.
+            var brand = function (n, d) { var x = getComputedStyle(root).getPropertyValue("--brand-" + n).trim(); return x || d; };
             var v = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
             var str = function (k, d) { return v[k] == null || v[k] === "" ? d : String(v[k]); };
             var num = function (k, d) { var n = Number(v[k]); return Number.isFinite(n) && n >= 0 ? n : d; };
-            var text = str("text", "Get it for $12.99/mo."), first = Math.round(num("first", 6)), size = num("size", 160) || 160, accent = str("accent", "#8b5cf6"), length = num("length", BASE) || BASE;
+            var text = str("text", "Get it for $12.99/mo."), first = Math.round(num("first", 6)), size = num("size", 160) || 160, accent = str("accent", brand("accent", "#8b5cf6")), length = num("length", BASE) || BASE;
 
             function build() {
-              var W = root.offsetWidth || 1920, H = root.offsetHeight || 1080;
+              var ink = brand("text", "#f5f5f5"), W = root.offsetWidth || 1920, H = root.offsetHeight || 1080;
               var line = root.querySelector(".se-ps-line"), shine = root.querySelector(".se-ps-shine");
               line.style.fontSize = shine.style.fontSize = size + "px";
               var chars = Array.from(text).map(function (c) { var s = document.createElement("span"); s.textContent = c; line.appendChild(s); return s; });
               shine.textContent = text;
-              shine.style.backgroundImage = "linear-gradient(110deg, #f5f5f5 0%, #f5f5f5 40%, color-mix(in srgb, " + accent + " 58%, white) 47%, #ffffff 50%, color-mix(in srgb, " + accent + " 72%, white) 53%, #f5f5f5 60%, #f5f5f5 100%)";
+              shine.style.backgroundImage = "linear-gradient(110deg, " + ink + " 0%, " + ink + " 40%, color-mix(in srgb, " + accent + " 58%, white) 47%, #ffffff 50%, color-mix(in srgb, " + accent + " 72%, white) 53%, " + ink + " 60%, " + ink + " 100%)";
               var lh = line.offsetHeight, y = H / 2 - lh / 2;
               gsap.set([line, shine], { y: y });
               gsap.set(shine, { x: W / 2 - line.offsetWidth / 2 });

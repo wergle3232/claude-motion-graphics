@@ -1,21 +1,22 @@
 <!doctype html>
 <!--
-  se-open-to-screen (StackEngine library)
+  se-open-to-screen (claude-motion-graphics library)
   Job: brings a real screen in through the sentence that names it. Two words come
   together into one line, the gap between them opens into a strip that shows the
   picture scrolling, then the strip grows to fill the frame.
-  From: Apple test 1, shot 2 "Edit a video." (built by hand; HyperFrames'
+  From: an early test piece, "Edit a video." (built by hand; HyperFrames'
   text-state-swap idea for the words).
   Settings: before, after (the two halves of the line), image (a wide picture inside
   the project, for example a strip of screenshots; empty shows a brand gradient),
   size (px), accent (glow and border), length (seconds). Base 2.05 s.
+  Brand: empty colour settings take the piece's brand.css (--brand-*); fonts too.
 -->
 <html lang="en" data-composition-id="se-open-to-screen" data-composition-variables='[
   {"id":"before","type":"string","label":"First words","default":"Edit a"},
   {"id":"after","type":"string","label":"Last word","default":"video."},
   {"id":"image","type":"string","label":"Picture in the gap","default":""},
   {"id":"size","type":"number","label":"Text size","default":150,"min":40,"max":400,"unit":"px"},
-  {"id":"accent","type":"color","label":"Accent","default":"#8b5cf6"},
+  {"id":"accent","type":"color","label":"Accent (empty: brand)","default":""},
   {"id":"length","type":"number","label":"Length","default":2.05,"min":0.5,"max":10,"step":0.05,"unit":"s"}
 ]'>
   <body>
@@ -23,7 +24,7 @@
       <div id="root" data-composition-id="se-open-to-screen" data-width="1920" data-height="1080">
         <style>
           #root { position: absolute; inset: 0; overflow: hidden; }
-          .se-os-word { position: absolute; left: 0; top: 0; font-family: "Inter", sans-serif; color: #f5f5f5; font-weight: 600; letter-spacing: -0.02em; line-height: 1; white-space: nowrap; transform-origin: 50% 50%; }
+          .se-os-word { position: absolute; left: 0; top: 0; font-family: var(--brand-font-display, "Inter"), sans-serif; color: var(--brand-text, #f5f5f5); font-weight: 600; letter-spacing: -0.02em; line-height: 1; white-space: nowrap; transform-origin: 50% 50%; }
           .se-os-strip { position: absolute; left: 0; top: 0; overflow: hidden; border: 3px solid; border-radius: 14px; background: #000; opacity: 0; }
           .se-os-strip img { position: absolute; left: 0; top: 0; height: 100%; width: auto; max-width: none; }
           .se-os-strip .se-os-fill { position: absolute; inset: 0; }
@@ -37,11 +38,13 @@
             var ID = "se-open-to-screen", BASE = 2.05;
             // HyperFrames runs this with a document scoped to this copy, so "root" is this copy's root.
             var root = document.getElementById("root");
+            // Brand: colours and fonts come from the piece's brand.css (--brand-*). A setting passed in wins.
+            var brand = function (n, d) { var x = getComputedStyle(root).getPropertyValue("--brand-" + n).trim(); return x || d; };
             var v = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
             var str = function (k, d) { return v[k] == null || v[k] === "" ? d : String(v[k]); };
             var num = function (k, d) { var n = Number(v[k]); return Number.isFinite(n) && n > 0 ? n : d; };
             var beforeText = str("before", "Edit a"), afterText = str("after", "video."), image = str("image", "");
-            var size = num("size", 150), accent = str("accent", "#8b5cf6"), length = num("length", BASE);
+            var size = num("size", 150), accent = str("accent", brand("accent-2", "#8b5cf6")), length = num("length", BASE);
 
             function build() {
               // The test was built at 84 px type; distances scale with the type size.
@@ -51,7 +54,7 @@
               a.style.fontSize = b.style.fontSize = size + "px";
               a.textContent = beforeText; b.textContent = afterText;
               if (image) { img.src = image; fill.style.display = "none"; }
-              else { img.style.display = "none"; fill.style.background = "linear-gradient(120deg, #1a0a3e, " + accent + " 55%, #00e87b)"; }
+              else { img.style.display = "none"; fill.style.background = "linear-gradient(120deg, " + brand("bg", "#1a0a3e") + ", " + accent + " 55%, " + brand("accent", "#00e87b") + ")"; }
               strip.style.borderColor = accent;
               strip.style.boxShadow = "0 0 40px " + accent;
               var aw = a.offsetWidth, bw = b.offsetWidth, wh = a.offsetHeight, sp = 0.26 * size;
@@ -63,7 +66,7 @@
               tl.fromTo(b, { x: cx - 140 * k, y: ly + 80 * k, scale: 1.6, opacity: 0, filter: "blur(6px)" }, { opacity: 0.35, duration: 0.25, ease: "power2.out" }, 0.05);
               tl.to(b, { x: cx, duration: 0.5, ease: "power2.inOut" }, 0.35);
               // They settle into one white line.
-              tl.to(a, { x: lx, y: ly, scale: 1, color: "#f5f5f5", textShadow: "0 0 0px rgba(0,0,0,0)", duration: 0.25, ease: "power3.inOut" }, 0.9);
+              tl.to(a, { x: lx, y: ly, scale: 1, color: brand("text", "#f5f5f5"), textShadow: "0 0 0px rgba(0,0,0,0)", duration: 0.25, ease: "power3.inOut" }, 0.9);
               tl.to(b, { x: lx + aw + sp, y: ly, scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.25, ease: "power3.inOut" }, 0.9);
               // The gap opens into a strip showing the picture.
               var stripW = 380 * k, stripH = 110 * k, sx = lx + aw + sp / 2;

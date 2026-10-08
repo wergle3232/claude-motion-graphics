@@ -1,10 +1,21 @@
 <!-- hyperframes-registry-item: vfx-shatter -->
+<!--
+  se-paint-shatter (claude-motion-graphics library, a clip)
+  Job: sending or sharing something out. A word shatters into glass shards.
+  Made from HyperFrames' vfx-shatter block (Apache-2.0, see ../THIRD-PARTY-NOTICES.md):
+  cut from a 12 s demo to 0.8 s, shards sped up (SPEED), capture wrapped in try/catch,
+  demo text replaced by one word, colours and font taken from the piece's brand.css.
+  Use: copy into the piece's source/clips/, change the word in .share-word below,
+  render it on its own (render --composition clips/se-paint-shatter.html), then place the
+  video in the timeline. Not a mountable sub-composition.
+-->
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=1920, height=1080" />
-    <title>HTML Glass Shatter</title>
+    <title>Shatter clip</title>
+    <link rel="stylesheet" href="../shared/brand.css" />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
       rel="stylesheet"
@@ -49,10 +60,10 @@
         color: #fff;
       }
 
-      /* StackEngine test: Share it. */
-      .share-a, .share-b { width: 1920px; height: 1080px; background: #0a0a0f; display: flex; align-items: center; justify-content: center; }
-      .share-word { font-family: "Inter", sans-serif; font-weight: 600; font-size: 176px; letter-spacing: -0.02em; color: #8fb8ff;
-        text-shadow: 0 0 30px rgba(139,92,246,0.9), 0 0 70px rgba(97,140,255,0.6); }
+      /* The word that shatters. */
+      .share-a, .share-b { width: 1920px; height: 1080px; background: var(--brand-bg, #0a0a0f); display: flex; align-items: center; justify-content: center; }
+      .share-word { font-family: var(--brand-font-display, "Inter"), sans-serif; font-weight: 600; font-size: 176px; letter-spacing: -0.02em; color: var(--brand-text, #8fb8ff);
+        text-shadow: 0 0 30px color-mix(in srgb, var(--brand-accent-2, #8b5cf6) 90%, transparent), 0 0 70px color-mix(in srgb, var(--brand-accent, #618cff) 60%, transparent); }
       /* ── Panel A: Write HTML, Render Video ─────────────────────────── */
       .panel-a-inner {
         width: 100%;
@@ -437,7 +448,7 @@
       var CRACK_END = 0.4;
       var SHATTER_START = 0.4;
       var SHATTER_SETTLE = 0.8;
-      var SPEED = 1.5; // shards fly this many times faster than the demo, to fit Apple's 0.35 s burst
+      var SPEED = 1.5; // shards fly this many times faster than the demo, to fit a 0.35 s burst
 
       // ── Feature Detection ──────────────────────────────────────────────
       function isSupported() {
