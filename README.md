@@ -139,7 +139,9 @@ Still in Terminal (Mac) or PowerShell (Windows):
    claude
    ```
 
-   (On Windows, use `mkdir $HOME\Documents\my-motion` and `cd $HOME\Documents\my-motion`.) You can also use the Claude desktop app: open its Code tab and choose this folder. The plugin works there too.
+   (On Windows, use `mkdir $HOME\Documents\my-motion` and `cd $HOME\Documents\my-motion`.)
+
+   **Or use the Claude desktop app** (Windows or Mac): open the **Code** tab, start a **local** session (not a cloud one) and choose your `my-motion` folder. A plugin installed with the commands above is available there too, because the desktop app and the terminal share the same plugin settings. To check, click **+** next to the prompt box, then **Plugins**, then **Manage plugins**: `motion-graphics-studio` should be listed and on. The desktop app also needs Node, FFmpeg, Git and HyperFrames' skills from the steps above, because the plugin uses them on your computer.
 
 2. **Set up your brand.** Type:
 
