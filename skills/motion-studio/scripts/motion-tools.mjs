@@ -21,6 +21,9 @@ Setting up a piece
   prepare  <source> --brand <brand.md>   brand.css from brand.md, brand fonts and logo
                                          copied in, GSAP and other CDN scripts made local
   brand-css <brand.md> [out.css]         only write the brand stylesheet (prints it if no out)
+  item     <source> <item> [--size 1080x1920]
+                                         copies a library item into the piece, sized for
+                                         one format, and prints how to mount it
   check    <source> <entry.html> [--set id=value]
                                          HyperFrames check on a format entry file
                                          (check itself only reads index.html)
@@ -47,7 +50,9 @@ Sound
   loudness <file>                        integrated loudness (LUFS) and true peak
   music    <in> <out.m4a> --length 15 [--from 0] [--fade-in 0.5] [--fade-out 2] [--lufs -15]
                                          cut, fade and level a music track for a piece
-  normalize <video> <out.mp4> [--lufs -14] levels the finished mix of a render
+  normalize <video> <out.mp4> [--lufs -14 | --peak -3]
+                                         levels the finished mix: --lufs for music or voice,
+                                         --peak for effects only
 
 Review and records
   page     <folder> [--title "..."]      writes <folder>/index.html: every render, sheet
@@ -364,8 +369,17 @@ function music({ pos, opt }) {
 
 function normalize({ pos, opt }) {
   const [video, out] = pos;
-  if (!video || !out) die("normalize <video> <out.mp4> [--lufs -14]");
+  if (!video || !out) die("normalize <video> <out.mp4> [--lufs -14 | --peak -3]");
   if (!hasAudio(video)) die(`${video} has no sound track.`);
+  if (opt.peak !== undefined) {
+    // Effects only (no music or voice): loudness over mostly-silence means little, so the
+    // whole mix is raised or lowered until its loudest moment reaches the peak asked for.
+    const before = measure(video), gain = Number(opt.peak) - before.peak;
+    ff(["-i", video, "-c:v", "copy", "-af", `volume=${gain.toFixed(2)}dB`, "-ar", "48000", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", out]);
+    const m = measure(out);
+    console.log(`${out}: peak ${m.peak} dBTP (was ${before.peak}), ${m.lufs} LUFS`);
+    return;
+  }
   const target = Number(opt.lufs ?? -14);
   // Two passes: measure, then correct linearly so the mix keeps its dynamics.
   const r = run("ffmpeg", ["-hide_banner", "-i", video, "-af", `loudnorm=I=${target}:TP=-1.5:LRA=11:print_format=json`, "-f", "null", "-"], { allowFail: true });
@@ -451,7 +465,7 @@ function fillColours(c, fallbackBg) {
   return o;
 }
 
-function brandCss(brandFile, cssOut, assetsDirFromCss = "../assets/brand", fontsDir = null) {
+function brandCss(brandFile, cssOut, fontUrl = "fonts", fontsDir = null) {
   const b = readBrand(brandFile);
   if (!Object.keys(b.dark).length && !Object.keys(b.light).length) die(`${brandFile}: no colours found. The "## Colours" table needs rows like "| Background | #0B0C0E | ... |".`);
   const main = fillColours(Object.keys(b.dark).length ? b.dark : b.light, "#0B0C0E");
@@ -460,9 +474,9 @@ function brandCss(brandFile, cssOut, assetsDirFromCss = "../assets/brand", fonts
   const fonts = { display: q(b.fonts.display || b.fonts.body) || '"Inter"', body: q(b.fonts.body || b.fonts.display) || '"Inter"', mono: q(b.fonts.mono) || '"JetBrains Mono"' };
   const vars = (c) => Object.entries(c).map(([k, v]) => `  --brand-${k}: ${v};`).join("\n");
   const notes = [...b.warnings];
-  const google = fontsDir ? b.googleFonts.map((g) => googleFont(g.family, g.weights, fontsDir, `${assetsDirFromCss}/fonts`)) : [];
+  const google = fontsDir ? b.googleFonts.map((g) => googleFont(g.family, g.weights, fontsDir, fontUrl)) : [];
   google.forEach((g) => g.note && notes.push(g.note));
-  const faces = [...google.map((g) => g.css), ...b.fontFiles.map((f) => `@font-face { font-family: "${f.family}"; src: url("${assetsDirFromCss}/fonts/${path.basename(f.abs)}"); font-weight: ${f.weight}; font-style: ${f.italic ? "italic" : "normal"}; font-display: block; }`)].filter(Boolean).join("\n");
+  const faces = [...google.map((g) => g.css), ...b.fontFiles.map((f) => `@font-face { font-family: "${f.family}"; src: url("${fontUrl}/${path.basename(f.abs)}"); font-weight: ${f.weight}; font-style: ${f.italic ? "italic" : "normal"}; font-display: block; }`)].filter(Boolean).join("\n");
   const css = `/* Made from brand.md by motion-tools. Do not edit: change brand.md and run prepare again. */
 ${faces}
 :root {
@@ -576,10 +590,12 @@ function prepare({ pos, opt }) {
   const out = [];
   if (opt.brand) {
     const dest = path.join(source, "assets", "brand");
-    const { brand, notes, fonts } = brandCss(opt.brand, path.join(source, "shared", "brand.css"), "../assets/brand", path.join(dest, "fonts"));
-    for (const f of brand.fontFiles) { fs.mkdirSync(path.join(dest, "fonts"), { recursive: true }); fs.copyFileSync(f.abs, path.join(dest, "fonts", path.basename(f.abs))); }
+    // Fonts sit next to brand.css (shared/fonts/), so its url()s need no "../", which HyperFrames' lint rejects.
+    const fontDir = path.join(source, "shared", "fonts");
+    const { brand, notes, fonts } = brandCss(opt.brand, path.join(source, "shared", "brand.css"), "fonts", fontDir);
+    for (const f of brand.fontFiles) { fs.mkdirSync(fontDir, { recursive: true }); fs.copyFileSync(f.abs, path.join(fontDir, path.basename(f.abs))); }
     for (const l of brand.logos) { fs.mkdirSync(dest, { recursive: true }); fs.copyFileSync(l, path.join(dest, path.basename(l))); }
-    out.push(`shared/brand.css written (fonts: ${fonts.display}, ${fonts.body}, ${fonts.mono}; ${brand.googleFonts.length} Google fonts and ${brand.fontFiles.length} font files made local, ${brand.logos.length} logos copied to assets/brand/)`);
+    out.push(`shared/brand.css written (fonts: ${fonts.display}, ${fonts.body}, ${fonts.mono}; ${brand.googleFonts.length} Google fonts and ${brand.fontFiles.length} font files made local in shared/fonts/, ${brand.logos.length} logos copied to assets/brand/)`);
     out.push(`brand.css linked from ${linkBrand(source)} entry file(s)`);
     notes.forEach((n) => out.push(`Check: ${n}`));
   }
@@ -598,7 +614,14 @@ function check({ pos, opt }) {
   fs.cpSync(src, copy, { recursive: true, filter: (p) => !/(node_modules|renders|snapshots|\.hyperframes)$/.test(p) });
   let html = fs.readFileSync(path.join(src, entry), "utf8");
   const depth = path.dirname(entry) === "." ? 0 : path.dirname(entry).split(/[\\/]/).length;
-  if (depth) html = html.split("../".repeat(depth)).join("");
+  // Paths in a format file are relative to it ("../shared/..."), except data-composition-src,
+  // which HyperFrames reads from the project root. Make the copy behave as the render does:
+  // drop the "../" from file-relative paths, and flag a composition path that has one.
+  if (depth) {
+    const bad = [...html.matchAll(/data-composition-src="(\.\.\/[^"]*)"/g)].map((m) => m[1]);
+    if (bad.length) die(`${entry}: data-composition-src must be written from the project root ("compositions/x.html"), not "${bad[0]}". The render cannot find it.`);
+    html = html.split("../".repeat(depth)).join("");
+  }
   for (const pair of [].concat(opt.set || [])) {
     const [k, v] = pair.split("=");
     html = html.replace(new RegExp(`("id"\\s*:\\s*"${k}"[^}]*"default"\\s*:\\s*")[^"]*(")`), `$1${v}$2`);
@@ -821,6 +844,36 @@ Cache reads are the conversation being re-read from Anthropic's cache each turn;
   console.log(`${file}: ${last.round} ${n(last.input + last.write5m + last.write1h + last.read)} input-side tokens, ${n(last.output)} output, $${last.usd.toFixed(2)} at API prices; total so far $${tot.usd.toFixed(2)}${last.note ? ` (${last.note})` : ""}`);
 }
 
+// ---------- library items ----------
+
+// Copies a library item into a piece. HyperFrames sizes a sub-composition by its own root's
+// data-width/data-height (and its lint requires them), so each canvas size gets its own copy:
+// compositions/<item>.html for 1920x1080, compositions/<W>x<H>/<item>.html for any other.
+function placeItem(source, id, W = 1920, H = 1080) {
+  const items = path.join(SKILL, "library", "items");
+  const file = path.join(items, `${id}.html`);
+  if (!fs.existsSync(file)) die(`No library item "${id}". Items: ${fs.readdirSync(items).map((f) => f.replace(/\.html$/, "")).join(", ")}`);
+  let html = fs.readFileSync(file, "utf8");
+  html = html.replace(/(<div[^>]*\bid="root"[^>]*?)(\s+data-width="\d+")?(\s+data-height="\d+")?([^>]*>)/, (all, a, w, h, b) => `${a.replace(/\s+data-(width|height)="\d+"/g, "")} data-width="${W}" data-height="${H}"${b.replace(/\s+data-(width|height)="\d+"/g, "")}`);
+  const rel = W === 1920 && H === 1080 ? `compositions/${id}.html` : `compositions/${W}x${H}/${id}.html`;
+  fs.mkdirSync(path.dirname(path.join(source, rel)), { recursive: true });
+  fs.writeFileSync(path.join(source, rel), html);
+  const len = (html.match(/"id":"length"[^}]*"default":([\d.]+)/) || html.match(/data-composition-duration="([\d.]+)"/) || [, "3"])[1];
+  return { rel, len };
+}
+
+function item({ pos, opt }) {
+  const [source, id] = pos;
+  if (!source || !id) die("item <source> <item> [--size 1080x1920]   (copies a library item into the piece and prints how to mount it)");
+  const [W, H] = (opt.size || "1920x1080").split("x").map(Number);
+  const { rel, len } = placeItem(source, id, W, H);
+  console.log(`${path.join(source, rel)}
+Mount it in the entry file for this size (data-composition-src is always written from the project root, also in formats/ files):
+<div id="${id}-1" class="clip" data-composition-id="${id}" data-composition-src="${rel}"
+  data-variable-values='{"length":${len}}' data-start="0" data-duration="${len}" data-track-index="5"
+  data-width="${W}" data-height="${H}" style="position:absolute;inset:0"></div>`);
+}
+
 // ---------- library previews ----------
 
 function library({ pos }) {
@@ -833,9 +886,7 @@ function library({ pos }) {
   const GAP = 0.6, slots = [];
   let t = 0;
   for (const id of ids) {
-    const src = fs.readFileSync(path.join(items, `${id}.html`), "utf8");
-    fs.copyFileSync(path.join(items, `${id}.html`), path.join(comps, `${id}.html`));
-    const len = Number((src.match(/"id":"length"[^}]*"default":([\d.]+)/) || src.match(/data-composition-duration="([\d.]+)"/) || [, 3])[1]);
+    const len = Number(placeItem(project, id).len);
     slots.push([id, t + GAP, len]);
     t += GAP + len + GAP;
   }
@@ -877,7 +928,7 @@ ${slots.map(([id, s, len], i) => `  <div id="label${i}" class="label clip" data-
 // ---------- main ----------
 
 const COMMANDS = {
-  prepare, check, contact, phone, stills, refs, clip, join, pdf, standin, web, loudness, music, normalize, page, review, cost, library,
+  prepare, check, item, contact, phone, stills, refs, clip, join, pdf, standin, web, loudness, music, normalize, page, review, cost, library,
   "brand-css": ({ pos }) => {
     if (!pos[0]) die("brand-css <brand.md> [out.css]");
     const r = brandCss(pos[0], pos[1]);

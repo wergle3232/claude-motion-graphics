@@ -45,3 +45,9 @@ Things that would look wrong for this brand. For example: stock-photo people, ne
 ## Sound
 
 Music style if any (for example: calm electronic, no vocals, about 100 BPM), or "silent by default".
+
+## Our rules
+
+Rules the user approved after a piece, one line each, with the piece they came from. Claude adds a line only when the user says yes.
+
+- (none yet)

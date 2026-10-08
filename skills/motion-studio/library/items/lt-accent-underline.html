@@ -7,8 +7,11 @@
   From: HyperFrames' lt-accent-underline registry item (Apache-2.0, see
   ../THIRD-PARTY-NOTICES.md), reworked: made a mountable sub-composition, text and
   side as settings, brand colours and fonts, exit fitted to the slot length.
-  Settings: title, subtitle, side (left or right), size (title px), accent, length
-  (seconds; the hold stretches, the moves keep their speed). Base 4.8 s.
+  Settings: title, subtitle, side (left or right), size (title px), subsize (subtitle
+  px; on a 1920-wide frame keep it 64 or more), accent, plate (a
+  dark brand-coloured plate behind the text, for busy footage), bottom (distance from
+  the bottom edge, % of the height: 12 suits 16:9, about 26 clears the 9:16 caption
+  zone), length (seconds; the hold stretches, the moves keep their speed). Base 4.8 s.
   Brand: empty colour settings take the piece's brand.css (--brand-*); fonts too.
 -->
 <html lang="en" data-composition-id="lt-accent-underline" data-composition-variables='[
@@ -16,18 +19,23 @@
   {"id":"subtitle","type":"string","label":"Subtitle","default":"Founder, Example Studio"},
   {"id":"side","type":"string","label":"Side (left or right)","default":"left"},
   {"id":"size","type":"number","label":"Title size","default":76,"min":36,"max":200,"unit":"px"},
+  {"id":"subsize","type":"number","label":"Subtitle size (0: 0.42 of the title)","default":0,"min":0,"max":160,"unit":"px"},
   {"id":"accent","type":"color","label":"Line colour (empty: brand)","default":""},
+  {"id":"plate","type":"boolean","label":"Plate behind the text","default":false},
+  {"id":"bottom","type":"number","label":"Distance from the bottom","default":12,"min":0,"max":60,"unit":"%"},
   {"id":"length","type":"number","label":"Length","default":4.8,"min":1.6,"max":30,"step":0.1,"unit":"s"}
 ]'>
   <body>
     <template>
-      <div id="root" data-composition-id="lt-accent-underline" data-width="1920" data-height="1080">
+      <div id="root" data-composition-id="lt-accent-underline">
         <style>
           #root { position: absolute; inset: 0; overflow: hidden; }
-          .lt-box { position: absolute; bottom: 12%; display: flex; flex-direction: column; gap: 0.18em; }
+          .lt-box { position: absolute; display: flex; flex-direction: column; gap: 0.18em; }
+          .lt-box.plate { padding: 0.32em 0.42em 0.38em; border-radius: 0.2em; background: color-mix(in srgb, var(--brand-bg, #0d1117) 84%, transparent); }
+          .lt-box.plate .lt-title, .lt-box.plate .lt-sub { text-shadow: none; }
           .lt-title { font-family: var(--brand-font-display, "Oswald"), sans-serif; font-weight: 700; color: var(--brand-text, #ffffff); line-height: 0.96; white-space: nowrap; text-shadow: 0 2px 22px rgba(0, 0, 0, 0.45); }
           .lt-rule { height: 0.08em; width: 100%; border-radius: 0.04em; }
-          .lt-sub { font-family: var(--brand-font-body, var(--brand-font-mono, "Space Mono")), sans-serif; font-size: 0.37em; color: var(--brand-text, #e7eaf0); line-height: 1.2; white-space: nowrap; text-shadow: 0 2px 16px rgba(0, 0, 0, 0.45); }
+          .lt-sub { font-family: var(--brand-font-body, var(--brand-font-mono, "Space Mono")), sans-serif; font-size: 0.42em; color: var(--brand-text, #e7eaf0); line-height: 1.2; white-space: nowrap; text-shadow: 0 2px 16px rgba(0, 0, 0, 0.45); }
         </style>
         <div class="lt-box"><div class="lt-title"></div><div class="lt-rule"></div><div class="lt-sub"></div></div>
         <script>
@@ -42,10 +50,14 @@
             var str = function (k, d) { return v[k] == null || v[k] === "" ? d : String(v[k]); };
             var num = function (k, d) { var n = Number(v[k]); return Number.isFinite(n) && n > 0 ? n : d; };
             var title = str("title", "Alex Rivera"), sub = str("subtitle", ""), side = str("side", "left");
+            var plate = v.plate === true || v.plate === "true", bottom = Number.isFinite(Number(v.bottom)) ? Number(v.bottom) : 12;
             var size = num("size", 76), accent = str("accent", brand("accent", "#46e5b7")), length = Math.max(1.6, num("length", BASE));
 
             var box = root.querySelector(".lt-box"), t = root.querySelector(".lt-title"), rule = root.querySelector(".lt-rule"), s = root.querySelector(".lt-sub");
             box.style.fontSize = size + "px";
+            if (num("subsize", 0)) s.style.fontSize = num("subsize", 0) + "px";
+            box.style.bottom = bottom + "%";
+            if (plate) box.classList.add("plate");
             t.textContent = title;
             s.textContent = sub;
             if (!sub) s.style.display = "none";
@@ -56,6 +68,7 @@
 
             var out = length - 0.55;
             var tl = gsap.timeline({ paused: true });
+            if (plate) { tl.fromTo(box, { opacity: 0, clipPath: "inset(0 100% 0 0 round 0.2em)" }, { opacity: 1, clipPath: "inset(0 0% 0 0 round 0.2em)", duration: 0.4, ease: "power3.out" }, 0); tl.to(box, { opacity: 0, duration: 0.25, ease: "power2.in" }, out + 0.15); }
             tl.set(t, { y: 28, opacity: 0 }, 0).set(rule, { scaleX: 0 }, 0).set(s, { y: 16, opacity: 0 }, 0);
             tl.to(t, { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 0.1);
             tl.to(rule, { scaleX: 1, duration: 0.5, ease: "power4.out" }, 0.3);
