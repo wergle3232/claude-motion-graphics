@@ -1,0 +1,74 @@
+<!doctype html>
+<!--
+  se-name-roll (StackEngine library)
+  Job: shows many tools, features or sections at once. A list of names rolls up
+  like a slot machine, each in its own colour with a letter badge; the one in the
+  middle is largest, and it lands on the last name.
+  From: Apple test 2, shot 4 (HyperFrames' slot-machine-roll method, Apache-2.0:
+  one reel moved by one value; the row sizing by hand).
+  Settings: names (comma-separated, each "Name|#colour"; the colour is optional),
+  size (px), length (seconds). Base 1.3 s.
+-->
+<html lang="en" data-composition-id="se-name-roll" data-composition-variables='[
+  {"id":"names","type":"string","label":"Names","default":"Today|#00e87b,Projects|#8b5cf6,Next Video|#c9b8ff,Whiteboard|#7af7c0,Videos|#8b5cf6,Agents|#00e87b,Brand|#c9b8ff"},
+  {"id":"size","type":"number","label":"Text size","default":190,"min":40,"max":400,"unit":"px"},
+  {"id":"length","type":"number","label":"Length","default":1.3,"min":0.3,"max":10,"step":0.05,"unit":"s"}
+]'>
+  <body>
+    <template>
+      <div id="root" data-composition-id="se-name-roll" data-width="1920" data-height="1080">
+        <style>
+          #root { position: absolute; inset: 0; overflow: hidden; }
+          .se-nr-row { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 0.3em; white-space: nowrap; font-family: "Inter", sans-serif; font-weight: 600; letter-spacing: -0.02em; transform-origin: 50% 50%; }
+          .se-nr-row i { display: inline-flex; align-items: center; justify-content: center; width: 0.8em; height: 0.8em; border-radius: 0.2em; font-style: normal; font-family: "JetBrains Mono", monospace; font-size: 0.5em; color: #0a0a0f; }
+        </style>
+        <script>
+          (function () {
+            "use strict";
+            var ID = "se-name-roll", BASE = 1.3;
+            // HyperFrames runs this with a document scoped to this copy, so "root" is this copy's root.
+            var root = document.getElementById("root");
+            var v = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            var str = function (k, d) { return v[k] == null || v[k] === "" ? d : String(v[k]); };
+            var num = function (k, d) { var n = Number(v[k]); return Number.isFinite(n) && n > 0 ? n : d; };
+            var palette = ["#00e87b", "#8b5cf6", "#c9b8ff", "#7af7c0"];
+            var names = str("names", "Today|#00e87b,Projects|#8b5cf6,Next Video|#c9b8ff,Whiteboard|#7af7c0,Videos|#8b5cf6,Agents|#00e87b,Brand|#c9b8ff")
+              .split(",").map(function (n, i) { var p = n.split("|"); return { name: p[0].trim(), colour: (p[1] || palette[i % palette.length]).trim() }; })
+              .filter(function (n) { return n.name; });
+            var size = num("size", 190), length = num("length", BASE);
+
+            function build() {
+              var W = root.offsetWidth || 1920, H = root.offsetHeight || 1080, ROW = size * 1.105;
+              var rows = names.map(function (n) {
+                var r = document.createElement("div"); r.className = "se-nr-row"; r.style.color = n.colour; r.style.fontSize = size + "px";
+                var badge = document.createElement("i"); badge.style.background = n.colour; badge.textContent = n.name.charAt(0);
+                r.appendChild(badge); r.appendChild(document.createTextNode(n.name)); root.appendChild(r); return r;
+              });
+              var rowW = rows.map(function (r) { return r.offsetWidth; }), rowH = rows.map(function (r) { return r.offsetHeight; });
+              var reel = { y: 0 };
+              var place = function () {
+                rows.forEach(function (r, i) {
+                  var d = i * ROW - reel.y, a = Math.abs(d) / ROW, s = Math.max(0.5, 1 - a * 0.38);
+                  gsap.set(r, { x: W / 2 - rowW[i] / 2, y: H / 2 - rowH[i] / 2 + d * 0.78, scale: s, opacity: a > 1.6 ? 0 : 1 - a * 0.45 });
+                });
+              };
+              var tl = gsap.timeline({ paused: true });
+              tl.fromTo(reel, { y: -ROW * 0.6 }, { y: ROW * (names.length - 1), duration: 1.25, ease: "power1.inOut", onUpdate: place }, 0);
+              tl.set({}, {}, BASE);
+              return tl;
+            }
+
+            var fonts = document.fonts ? document.fonts.ready : Promise.resolve();
+            fonts.then(function () {
+              var inner = build();
+              var tl = gsap.timeline({ paused: true });
+              tl.to(inner, { time: BASE, duration: length, ease: "none" }, 0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines[ID] = tl;
+            });
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

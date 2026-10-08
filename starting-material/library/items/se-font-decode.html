@@ -1,0 +1,80 @@
+<!doctype html>
+<!--
+  se-font-decode (StackEngine library)
+  Job: a brand or ending moment. A word fades in grey, every letter swaps through
+  different fonts, weights and colours, then the letters settle one by one into
+  the final font, left to right. The line never shifts while letters swap.
+  From: Apple test 2, shot 5 "StackEngine" (HyperFrames' matrix-decode cells,
+  Apache-2.0, fed fonts instead of characters; the scramble by hand).
+  Settings: text, size (px), colours (comma-separated scramble colours), final
+  colour, length (seconds). Base 1.3 s. Stretches cleanly (tested at 2.6 s).
+  The scramble fonts are Windows system fonts; on another computer missing ones
+  fall back to a default.
+-->
+<html lang="en" data-composition-id="se-font-decode" data-composition-variables='[
+  {"id":"text","type":"string","label":"Text","default":"StackEngine"},
+  {"id":"size","type":"number","label":"Text size","default":200,"min":40,"max":400,"unit":"px"},
+  {"id":"colours","type":"string","label":"Scramble colours","default":"#00e87b,#8b5cf6,#c9b8ff,#7af7c0,#f5f5f5,#b8ff5c"},
+  {"id":"final","type":"color","label":"Final colour","default":"#f5f5f5"},
+  {"id":"length","type":"number","label":"Length","default":1.3,"min":0.3,"max":10,"step":0.05,"unit":"s"}
+]'>
+  <body>
+    <template>
+      <div id="root" data-composition-id="se-font-decode" data-width="1920" data-height="1080">
+        <style>
+          #root { position: absolute; inset: 0; overflow: hidden; }
+          .se-fd-word { position: absolute; left: 0; top: 0; display: inline-flex; font-family: "Inter", sans-serif; font-weight: 600; line-height: 1; color: #6b6b6b; }
+          .se-fd-word span { display: inline-block; text-align: center; white-space: pre; }
+        </style>
+        <div class="se-fd-word"></div>
+        <script>
+          (function () {
+            "use strict";
+            var ID = "se-font-decode", BASE = 1.3;
+            // HyperFrames runs this with a document scoped to this copy, so "root" is this copy's root.
+            var root = document.getElementById("root");
+            var v = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            var str = function (k, d) { return v[k] == null || v[k] === "" ? d : String(v[k]); };
+            var num = function (k, d) { var n = Number(v[k]); return Number.isFinite(n) && n > 0 ? n : d; };
+            var text = str("text", "StackEngine"), size = num("size", 200), final = str("final", "#f5f5f5"), length = num("length", BASE);
+            var COLS = str("colours", "#00e87b,#8b5cf6,#c9b8ff,#7af7c0,#f5f5f5,#b8ff5c").split(",").map(function (c) { return c.trim(); });
+            var FONTS = ["Georgia", "Impact", "Courier New", "Comic Sans MS", "Segoe Script", "Arial Black", "Consolas", "Times New Roman", "Trebuchet MS", "JetBrains Mono"];
+            var seed = 0x24a77e;
+            var rnd = function () { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+
+            function build() {
+              var W = root.offsetWidth || 1920, H = root.offsetHeight || 1080;
+              var el = root.querySelector(".se-fd-word");
+              el.style.fontSize = size + "px";
+              var cells = Array.from(text).map(function (c) { var s = document.createElement("span"); s.textContent = c; el.appendChild(s); return s; });
+              // Measure each letter in the final font, then fix its width so swapping fonts doesn't shift the line.
+              cells.forEach(function (c) { c.style.width = c.offsetWidth + "px"; });
+              gsap.set(el, { x: W / 2 - el.offsetWidth / 2, y: H / 2 - el.offsetHeight / 2, opacity: 0 });
+              var tl = gsap.timeline({ paused: true });
+              tl.to(el, { opacity: 1, duration: 0.12, ease: "power1.out" }, 0);
+              var scrambleStart = 0.25, settleStart = 0.5, step = 0.05;
+              cells.forEach(function (c, i) {
+                var settleAt = settleStart + i * 0.025;
+                for (var t = scrambleStart; t < settleAt; t += step) {
+                  tl.set(c, { fontFamily: FONTS[Math.floor(rnd() * FONTS.length)], color: COLS[Math.floor(rnd() * COLS.length)], fontWeight: rnd() < 0.5 ? 400 : 700, scale: 0.85 + rnd() * 0.3 }, t);
+                }
+                tl.set(c, { fontFamily: "Inter", fontWeight: 600, color: final, scale: 1 }, settleAt);
+              });
+              tl.set({}, {}, BASE);
+              return tl;
+            }
+
+            var fonts = document.fonts ? document.fonts.ready : Promise.resolve();
+            fonts.then(function () {
+              var inner = build();
+              var tl = gsap.timeline({ paused: true });
+              tl.to(inner, { time: BASE, duration: length, ease: "none" }, 0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines[ID] = tl;
+            });
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

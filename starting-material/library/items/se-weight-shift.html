@@ -1,0 +1,91 @@
+<!doctype html>
+<!--
+  se-weight-shift (StackEngine library)
+  Job: points at one word, the way a design tool does. The word pops in, changes
+  weight inside selection handles (light, then medium), slides left, and the rest
+  of the line types in after it with a caret.
+  From: Apple test 1, shot 3 "Take your" (built by hand).
+  Settings: word, rest, size (px), accent (caret), length (seconds). Base 1.55 s.
+-->
+<html lang="en" data-composition-id="se-weight-shift" data-composition-variables='[
+  {"id":"word","type":"string","label":"Word","default":"Take"},
+  {"id":"rest","type":"string","label":"Rest of the line","default":"your"},
+  {"id":"size","type":"number","label":"Text size","default":220,"min":40,"max":400,"unit":"px"},
+  {"id":"accent","type":"color","label":"Caret colour","default":"#f5f5f5"},
+  {"id":"length","type":"number","label":"Length","default":1.55,"min":0.3,"max":10,"step":0.05,"unit":"s"}
+]'>
+  <body>
+    <template>
+      <div id="root" data-composition-id="se-weight-shift" data-width="1920" data-height="1080">
+        <style>
+          #root { position: absolute; inset: 0; overflow: hidden; }
+          .se-ws-word, .se-ws-rest { position: absolute; left: 0; top: 0; font-family: "Inter", sans-serif; color: #f5f5f5; font-weight: 900; letter-spacing: -0.04em; line-height: 1; white-space: nowrap; transform-origin: 0 50%; }
+          .se-ws-rest { font-weight: 600; }
+          .se-ws-rest span { display: inline-block; white-space: pre; }
+          .se-ws-box { position: absolute; left: 0; top: 0; border: 2px solid rgba(245, 245, 245, 0.85); opacity: 0; }
+          .se-ws-box i { position: absolute; width: 14px; height: 14px; background: #f5f5f5; }
+          .se-ws-caret { position: absolute; left: 0; top: 0; width: 5px; opacity: 0; }
+        </style>
+        <div class="se-ws-word"></div>
+        <div class="se-ws-rest"></div>
+        <div class="se-ws-box"><i style="left:-8px;top:-8px"></i><i style="right:-8px;top:-8px"></i><i style="left:-8px;bottom:-8px"></i><i style="right:-8px;bottom:-8px"></i></div>
+        <div class="se-ws-caret"></div>
+        <script>
+          (function () {
+            "use strict";
+            var ID = "se-weight-shift", BASE = 1.55;
+            // HyperFrames runs this with a document scoped to this copy, so "root" is this copy's root.
+            var root = document.getElementById("root");
+            var v = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            var str = function (k, d) { return v[k] == null || v[k] === "" ? d : String(v[k]); };
+            var num = function (k, d) { var n = Number(v[k]); return Number.isFinite(n) && n > 0 ? n : d; };
+            var wordText = str("word", "Take"), restText = str("rest", "your"), size = num("size", 220), accent = str("accent", "#f5f5f5"), length = num("length", BASE);
+
+            function build() {
+              var W = root.offsetWidth || 1920, H = root.offsetHeight || 1080;
+              var word = root.querySelector(".se-ws-word"), rest = root.querySelector(".se-ws-rest"), box = root.querySelector(".se-ws-box"), caret = root.querySelector(".se-ws-caret");
+              word.style.fontSize = rest.style.fontSize = size + "px";
+              word.textContent = wordText;
+              var chars = Array.from(restText).map(function (c) { var s = document.createElement("span"); s.textContent = c; rest.appendChild(s); return s; });
+              // Measure the word at each weight it uses (layout, not time).
+              var at = function (w) { word.style.fontWeight = w; var r = { w: word.offsetWidth, h: word.offsetHeight }; word.style.fontWeight = ""; return r; };
+              var r900 = at(900), r300 = at(300), r600 = at(600);
+              var y = H / 2 - r900.h / 2;
+              // First centred alone; then the word (at 600, scaled down) and the rest share the line.
+              var s = 0.72, gap = size * 0.16, lineW = r600.w * s + gap + rest.offsetWidth * s;
+              var leftX = W / 2 - lineW / 2;
+              gsap.set(word, { x: W / 2 - r900.w / 2, y: y });
+              gsap.set(rest, { x: leftX + r600.w * s + gap, y: y, scale: s });
+              gsap.set(chars, { opacity: 0 });
+              gsap.set(box, { x: W / 2 - r300.w / 2 - size * 0.09, y: y - size * 0.03, width: r300.w + size * 0.18, height: r300.h + size * 0.06 });
+              gsap.set(caret, { backgroundColor: accent, height: r900.h * s, x: leftX + r600.w * s + gap - size * 0.04, y: y + r900.h * (1 - s) / 2 });
+              var tl = gsap.timeline({ paused: true });
+              tl.fromTo(word, { scale: 1.15, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.18, ease: "expo.out" }, 0);
+              tl.set(word, { fontWeight: 300, x: W / 2 - r300.w / 2 }, 0.3);
+              tl.set(box, { opacity: 1 }, 0.3);
+              tl.set(word, { fontWeight: 600, x: W / 2 - r600.w / 2 }, 0.6);
+              tl.set(box, { opacity: 0 }, 0.83);
+              tl.to(word, { x: leftX, scale: s, duration: 0.25, ease: "power3.inOut" }, 0.85);
+              tl.set(caret, { opacity: 1 }, 0.92);
+              chars.forEach(function (c, i) { tl.set(c, { opacity: 1 }, 0.97 + i * 0.07); });
+              var restEnd = leftX + r600.w * s + gap + rest.offsetWidth * s;
+              tl.to(caret, { x: restEnd + size * 0.02, duration: 0.07 * chars.length, ease: "steps(" + chars.length + ")" }, 0.97);
+              tl.set(caret, { opacity: 0 }, 1.45);
+              tl.set({}, {}, BASE);
+              return tl;
+            }
+
+            var fonts = document.fonts ? document.fonts.ready : Promise.resolve();
+            fonts.then(function () {
+              var inner = build();
+              var tl = gsap.timeline({ paused: true });
+              tl.to(inner, { time: BASE, duration: length, ease: "none" }, 0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines[ID] = tl;
+            });
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

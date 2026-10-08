@@ -1,0 +1,111 @@
+<!doctype html>
+<!--
+  se-glass-cards (StackEngine library)
+  Job: shows three parts of one system, with depth. A violet beam and a green floor
+  light come up, three frosted glass cards float in (the middle one first), drift
+  in the light, then the side cards fold toward the middle.
+  From: Apple test 1, shot 12, the glass check from Zelios NeuraFlow (built by hand
+  with CSS backdrop-filter, which exports on this PC; the HyperFrames liquid-glass
+  shader blocks rendered black here).
+  Settings: labels (comma-separated, three), image (optional picture behind the glass,
+  a path inside the project), beam and floor colours, length (seconds). Base 3.0 s.
+-->
+<html lang="en" data-composition-id="se-glass-cards" data-composition-variables='[
+  {"id":"labels","type":"string","label":"Card labels","default":"Ideas,Brief,Publish"},
+  {"id":"image","type":"string","label":"Picture behind the glass","default":""},
+  {"id":"beam","type":"color","label":"Beam colour","default":"#8b5cf6"},
+  {"id":"floor","type":"color","label":"Floor light colour","default":"#00e87b"},
+  {"id":"length","type":"number","label":"Length","default":3,"min":0.6,"max":12,"step":0.1,"unit":"s"}
+]'>
+  <body>
+    <template>
+      <div id="root" data-composition-id="se-glass-cards" data-width="1920" data-height="1080">
+        <style>
+          #root { position: absolute; inset: 0; overflow: hidden; background: #05050a; }
+          .se-gc-img { position: absolute; left: 30%; top: 23%; width: 40%; height: 44%; object-fit: cover; opacity: 0.35; filter: saturate(0.8); border-radius: 18px; }
+          .se-gc-beam, .se-gc-core, .se-gc-orb, .se-gc-floor { position: absolute; border-radius: 50%; }
+          .se-gc-beam { left: 29%; top: -18%; width: 42%; height: 83%; border-radius: 0; }
+          .se-gc-core { left: 39.5%; top: 28%; width: 21%; height: 39%; }
+          .se-gc-orb { left: 54%; top: 33%; width: 8.3%; height: 14.8%; }
+          .se-gc-floor { left: 13.5%; top: 70%; width: 73%; height: 46%; }
+          .se-gc-cards { position: absolute; left: 50%; top: 50%; perspective: 1600px; transform-style: preserve-3d; transform: scale(1.9); }
+          .se-gc-card { position: absolute; width: 320px; height: 420px; left: -160px; top: -210px; border-radius: 30px;
+            background: linear-gradient(160deg, rgba(255,255,255,0.16), rgba(255,255,255,0.04) 45%, rgba(255,255,255,0.08));
+            backdrop-filter: blur(22px) saturate(160%); -webkit-backdrop-filter: blur(22px) saturate(160%);
+            border: 1.5px solid rgba(255,255,255,0.28);
+            box-shadow: inset 0 1.5px 0 rgba(255,255,255,0.45), inset 0 -20px 40px rgba(139,92,246,0.18), 0 30px 80px rgba(0,0,0,0.55); }
+          .se-gc-ring { position: absolute; left: 110px; top: 90px; width: 100px; height: 100px; border-radius: 50%; border: 2px solid; }
+          .se-gc-label { position: absolute; left: 34px; top: 260px; font-family: "JetBrains Mono", monospace; font-size: 34px; color: #f5f5f5; }
+          .se-gc-sub { position: absolute; left: 34px; top: 312px; width: 250px; height: 12px; border-radius: 6px; background: rgba(245,245,245,0.22); }
+          .se-gc-sub2 { top: 338px; width: 180px; }
+        </style>
+        <img class="se-gc-img" alt="" />
+        <div class="se-gc-beam"></div>
+        <div class="se-gc-floor"></div>
+        <div class="se-gc-core"></div>
+        <div class="se-gc-orb"></div>
+        <div class="se-gc-cards"></div>
+        <script>
+          (function () {
+            "use strict";
+            var ID = "se-glass-cards", BASE = 3.0;
+            // HyperFrames runs this with a document scoped to this copy, so "root" is this copy's root.
+            var root = document.getElementById("root");
+            var v = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            var str = function (k, d) { return v[k] == null || v[k] === "" ? d : String(v[k]); };
+            var num = function (k, d) { var n = Number(v[k]); return Number.isFinite(n) && n > 0 ? n : d; };
+            var labels = str("labels", "Ideas,Brief,Publish").split(",").map(function (s) { return s.trim(); });
+            var image = str("image", ""), beam = str("beam", "#8b5cf6"), floor = str("floor", "#00e87b"), length = num("length", BASE);
+            var rgba = function (hex, a) { var h = hex.replace("#", ""); if (h.length === 3) h = h.replace(/./g, "$&$&"); var n = parseInt(h, 16); return "rgba(" + (n >> 16 & 255) + "," + (n >> 8 & 255) + "," + (n & 255) + "," + a + ")"; };
+
+            function build() {
+              var $ = function (s) { return root.querySelector(s); };
+              var img = $(".se-gc-img");
+              if (image) img.src = image; else img.style.display = "none";
+              $(".se-gc-beam").style.background = "radial-gradient(ellipse at 50% 0%, " + rgba(beam, 0.85) + ", " + rgba(beam, 0.25) + " 40%, rgba(10,10,15,0) 70%)";
+              $(".se-gc-core").style.background = "radial-gradient(circle, rgba(225,215,255,0.95), " + rgba(beam, 0.7) + " 35%, " + rgba(beam, 0) + " 70%)";
+              $(".se-gc-orb").style.background = "radial-gradient(circle, #ffffff, " + floor + " 50%, " + rgba(floor, 0) + " 72%)";
+              $(".se-gc-floor").style.background = "radial-gradient(ellipse at 50% 0%, " + rgba(floor, 0.55) + ", " + rgba(floor, 0.08) + " 45%, rgba(0,0,0,0) 70%)";
+              // Order matters for depth: left, right, then the middle card on top.
+              var holder = $(".se-gc-cards"), cards = {};
+              [["left", labels[0] || ""], ["right", labels[2] || ""], ["mid", labels[1] || ""]].forEach(function (pair) {
+                var c = document.createElement("div"); c.className = "se-gc-card";
+                c.innerHTML = '<div class="se-gc-ring"></div><div class="se-gc-label"></div><div class="se-gc-sub"></div><div class="se-gc-sub se-gc-sub2"></div>';
+                c.querySelector(".se-gc-label").textContent = pair[1];
+                var ring = c.querySelector(".se-gc-ring");
+                ring.style.borderColor = rgba(floor, 0.75);
+                ring.style.background = "radial-gradient(circle, " + rgba(floor, 0.35) + ", " + rgba(floor, 0.05) + " 65%)";
+                holder.appendChild(c); cards[pair[0]] = c;
+              });
+              var tl = gsap.timeline({ paused: true });
+              tl.fromTo($(".se-gc-beam"), { opacity: 0, scaleY: 0.6 }, { opacity: 1, scaleY: 1, duration: 0.6, ease: "power2.out" }, 0);
+              tl.fromTo($(".se-gc-floor"), { opacity: 0 }, { opacity: 1, duration: 0.8, ease: "power1.out" }, 0.1);
+              tl.fromTo(cards.mid, { z: -500, y: 80, opacity: 0 }, { z: 0, y: 0, opacity: 1, duration: 0.7, ease: "expo.out" }, 0.15);
+              tl.fromTo(cards.left, { x: 0, z: -300, opacity: 0, rotationY: 0 }, { x: -300, z: -160, opacity: 0.85, rotationY: 18, duration: 0.7, ease: "expo.out" }, 0.4);
+              tl.fromTo(cards.right, { x: 0, z: -300, opacity: 0, rotationY: 0 }, { x: 300, z: -160, opacity: 0.85, rotationY: -18, duration: 0.7, ease: "expo.out" }, 0.4);
+              tl.to($(".se-gc-beam"), { x: 120, duration: 2.4, ease: "sine.inOut" }, 0.6);
+              if (image) tl.to(img, { x: -80, duration: 2.4, ease: "sine.inOut" }, 0.6);
+              tl.fromTo($(".se-gc-core"), { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.6, ease: "power2.out" }, 0.1);
+              tl.fromTo($(".se-gc-orb"), { x: 0, y: 0, opacity: 0 }, { x: -420, y: 120, opacity: 1, duration: 2.6, ease: "sine.inOut" }, 0.3);
+              // The side cards fold toward the middle and the middle card turns.
+              tl.to(cards.left, { x: -170, rotationY: 50, duration: 0.8, ease: "power3.inOut" }, 1.7);
+              tl.to(cards.right, { x: 170, rotationY: -50, duration: 0.8, ease: "power3.inOut" }, 1.7);
+              tl.to(cards.mid, { rotationY: -14, z: 60, duration: 0.8, ease: "power3.inOut" }, 1.7);
+              tl.set({}, {}, BASE);
+              return tl;
+            }
+
+            var fonts = document.fonts ? document.fonts.ready : Promise.resolve();
+            fonts.then(function () {
+              var inner = build();
+              var tl = gsap.timeline({ paused: true });
+              tl.to(inner, { time: BASE, duration: length, ease: "none" }, 0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines[ID] = tl;
+            });
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

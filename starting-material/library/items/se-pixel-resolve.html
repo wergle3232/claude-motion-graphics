@@ -1,0 +1,88 @@
+<!doctype html>
+<!--
+  se-pixel-resolve (StackEngine library)
+  Job: shows "better quality" or a reveal. The words start as big glowing blocks,
+  get finer in three steps, then the clean words resolve from a blur.
+  From: Apple test 2, shot 1 "Upscale it." (the blocky steps by hand; the resolve is
+  HyperFrames' focus-blur-resolve recipe, Apache-2.0, run on our timing).
+  Settings: text, size (px), glow (block colour), length (seconds). Base 0.84 s.
+-->
+<html lang="en" data-composition-id="se-pixel-resolve" data-composition-variables='[
+  {"id":"text","type":"string","label":"Text","default":"Upscale it."},
+  {"id":"size","type":"number","label":"Text size","default":230,"min":40,"max":400,"unit":"px"},
+  {"id":"glow","type":"color","label":"Block colour","default":"#00e87b"},
+  {"id":"length","type":"number","label":"Length","default":0.84,"min":0.2,"max":10,"step":0.05,"unit":"s"}
+]'>
+  <body>
+    <template>
+      <div id="root" data-composition-id="se-pixel-resolve" data-width="1920" data-height="1080">
+        <style>
+          #root { position: absolute; inset: 0; overflow: hidden; }
+          .se-pr-canvas { position: absolute; left: 0; top: 0; }
+          .se-pr-words { position: absolute; left: 0; top: 0; display: inline-flex; font-family: "Inter", sans-serif; color: #f5f5f5; font-weight: 600; letter-spacing: -0.02em; line-height: 1; white-space: nowrap; }
+          .se-pr-words span { display: inline-block; filter: blur(var(--se-pr-blur, 0px)); transform: scale(var(--se-pr-scale, 1)); }
+        </style>
+        <canvas class="se-pr-canvas"></canvas>
+        <div class="se-pr-words"></div>
+        <script>
+          (function () {
+            "use strict";
+            var ID = "se-pixel-resolve", BASE = 0.84;
+            // HyperFrames runs this with a document scoped to this copy, so "root" is this copy's root.
+            var root = document.getElementById("root");
+            var v = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            var str = function (k, d) { return v[k] == null || v[k] === "" ? d : String(v[k]); };
+            var num = function (k, d) { var n = Number(v[k]); return Number.isFinite(n) && n > 0 ? n : d; };
+            var text = str("text", "Upscale it."), size = num("size", 230), glow = str("glow", "#00e87b"), length = num("length", BASE);
+
+            function build() {
+              var W = root.offsetWidth || 1920, H = root.offsetHeight || 1080, k = size / 230;
+              var words = root.querySelector(".se-pr-words"), cv = root.querySelector(".se-pr-canvas");
+              words.style.fontSize = size + "px";
+              words.style.gap = 40 * k + "px";
+              var spans = text.split(/\s+/).map(function (w) { var s = document.createElement("span"); s.textContent = w; words.appendChild(s); return s; });
+              gsap.set(words, { x: W / 2 - words.offsetWidth / 2, y: H / 2 - words.offsetHeight / 2 });
+              cv.width = W; cv.height = H;
+              var ctx = cv.getContext("2d");
+              var src = document.createElement("canvas"); src.width = W; src.height = H;
+              var sctx = src.getContext("2d");
+              sctx.font = "600 " + size + "px Inter"; sctx.textAlign = "center"; sctx.textBaseline = "middle"; sctx.fillStyle = "#fff";
+              sctx.fillText(text, W / 2, H / 2 + 5 * k);
+              var tiny = document.createElement("canvas"), tctx = tiny.getContext("2d");
+              var paintBlocks = function (b) {
+                ctx.clearRect(0, 0, W, H);
+                if (!b) return;
+                tiny.width = Math.ceil(W / b); tiny.height = Math.ceil(H / b);
+                tctx.imageSmoothingEnabled = true; tctx.drawImage(src, 0, 0, tiny.width, tiny.height);
+                ctx.imageSmoothingEnabled = false;
+                ctx.save(); ctx.shadowColor = glow; ctx.shadowBlur = 30 * k;
+                ctx.drawImage(tiny, 0, 0, W, H);
+                ctx.globalCompositeOperation = "source-in"; ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
+                ctx.restore();
+              };
+              var tl = gsap.timeline({ paused: true });
+              var clock = { t: 0 };
+              tl.fromTo(clock, { t: 0 }, { t: 0.8, duration: 0.8, ease: "none", onUpdate: function () {
+                var t = clock.t; paintBlocks(t < 0.18 ? 30 * k : t < 0.32 ? 20 * k : t < 0.46 ? 11 * k : 0);
+              } }, 0);
+              gsap.set(spans, { opacity: 0 });
+              tl.fromTo(spans, { opacity: 0, "--se-pr-scale": 1.08, "--se-pr-blur": 16 * k + "px" },
+                { opacity: 1, "--se-pr-scale": 1, "--se-pr-blur": "0px", duration: 0.22, stagger: 0.03, ease: "power3.out", immediateRender: false }, 0.46);
+              tl.set({}, {}, BASE);
+              return tl;
+            }
+
+            var fonts = document.fonts ? document.fonts.ready : Promise.resolve();
+            fonts.then(function () {
+              var inner = build();
+              var tl = gsap.timeline({ paused: true });
+              tl.to(inner, { time: BASE, duration: length, ease: "none" }, 0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines[ID] = tl;
+            });
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

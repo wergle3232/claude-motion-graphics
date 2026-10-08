@@ -1,0 +1,92 @@
+<!doctype html>
+<!--
+  se-price-shimmer (StackEngine library)
+  Job: makes a price or a number stand out. The first words appear, the rest types
+  on a few letters at a time with the line staying centred, then one bright band of
+  colour sweeps across the letters and the line settles white.
+  From: Apple test 2, shot 3 "Get it for $12.99/mo." (typing by hand; the sweep is
+  HyperFrames' text-shimmer gradient, Apache-2.0, with its timing fixed).
+  Settings: text, first (how many letters show at once), size (px), accent (sweep
+  colour), length (seconds). Base 1.5 s.
+-->
+<html lang="en" data-composition-id="se-price-shimmer" data-composition-variables='[
+  {"id":"text","type":"string","label":"Text","default":"Get it for $12.99/mo."},
+  {"id":"first","type":"number","label":"Letters shown at once","default":6,"min":0,"max":60},
+  {"id":"size","type":"number","label":"Text size","default":160,"min":40,"max":400,"unit":"px"},
+  {"id":"accent","type":"color","label":"Sweep colour","default":"#8b5cf6"},
+  {"id":"length","type":"number","label":"Length","default":1.5,"min":0.3,"max":10,"step":0.05,"unit":"s"}
+]'>
+  <body>
+    <template>
+      <div id="root" data-composition-id="se-price-shimmer" data-width="1920" data-height="1080">
+        <style>
+          #root { position: absolute; inset: 0; overflow: hidden; }
+          .se-ps-line { position: absolute; left: 0; top: 0; font-family: "Inter", sans-serif; color: #f5f5f5; font-weight: 780; letter-spacing: -0.055em; line-height: 0.96; white-space: nowrap; }
+          .se-ps-line span { display: inline-block; white-space: pre; }
+          .se-ps-shine {
+            position: absolute; left: 0; top: 0; font-family: "Inter", sans-serif; font-weight: 780; letter-spacing: -0.055em; line-height: 0.96; white-space: nowrap;
+            color: transparent; background-repeat: no-repeat; background-size: 300% 100%; background-position: 100% 50%;
+            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; opacity: 0;
+          }
+        </style>
+        <div class="se-ps-line"></div>
+        <div class="se-ps-shine"></div>
+        <script>
+          (function () {
+            "use strict";
+            var ID = "se-price-shimmer", BASE = 1.5;
+            // HyperFrames runs this with a document scoped to this copy, so "root" is this copy's root.
+            var root = document.getElementById("root");
+            var v = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            var str = function (k, d) { return v[k] == null || v[k] === "" ? d : String(v[k]); };
+            var num = function (k, d) { var n = Number(v[k]); return Number.isFinite(n) && n >= 0 ? n : d; };
+            var text = str("text", "Get it for $12.99/mo."), first = Math.round(num("first", 6)), size = num("size", 160) || 160, accent = str("accent", "#8b5cf6"), length = num("length", BASE) || BASE;
+
+            function build() {
+              var W = root.offsetWidth || 1920, H = root.offsetHeight || 1080;
+              var line = root.querySelector(".se-ps-line"), shine = root.querySelector(".se-ps-shine");
+              line.style.fontSize = shine.style.fontSize = size + "px";
+              var chars = Array.from(text).map(function (c) { var s = document.createElement("span"); s.textContent = c; line.appendChild(s); return s; });
+              shine.textContent = text;
+              shine.style.backgroundImage = "linear-gradient(110deg, #f5f5f5 0%, #f5f5f5 40%, color-mix(in srgb, " + accent + " 58%, white) 47%, #ffffff 50%, color-mix(in srgb, " + accent + " 72%, white) 53%, #f5f5f5 60%, #f5f5f5 100%)";
+              var lh = line.offsetHeight, y = H / 2 - lh / 2;
+              gsap.set([line, shine], { y: y });
+              gsap.set(shine, { x: W / 2 - line.offsetWidth / 2 });
+              gsap.set(chars, { opacity: 0 });
+              var tl = gsap.timeline({ paused: true });
+              // The first letters at once, then the rest a few at a time; the line re-centres each step.
+              var n = Math.min(chars.length, Math.max(1, first)), steps = [[n, 0.05]], rest = chars.length - n;
+              var chunks = Math.min(4, rest);
+              for (var i = 1; i <= chunks; i++) steps.push([n + Math.round((rest * i) / chunks), 0.3 + (i - 1) * 0.08]);
+              var shown = 0;
+              steps.forEach(function (s) {
+                var last = chars[s[0] - 1], w = last.offsetLeft + last.offsetWidth;
+                tl.set(chars.slice(shown, s[0]), { opacity: 1 }, s[1]);
+                tl.set(line, { x: W / 2 - w / 2 }, s[1]);
+                shown = s[0];
+              });
+              // The sweep: the gradient copy covers the line for its pass.
+              tl.set(line, { opacity: 0 }, 0.55);
+              tl.set(shine, { opacity: 1 }, 0.55);
+              tl.fromTo(shine, { backgroundPosition: "100% 50%" }, { backgroundPosition: "0% 50%", duration: 0.6, ease: "sine.inOut", immediateRender: false }, 0.55);
+              tl.set(line, { opacity: 1 }, 1.15);
+              tl.set(shine, { opacity: 0 }, 1.15);
+              tl.to(line, { y: y - 30 * size / 160, opacity: 0, duration: 0.15, ease: "power2.in" }, 1.35);
+              tl.set({}, {}, BASE);
+              return tl;
+            }
+
+            var fonts = document.fonts ? document.fonts.ready : Promise.resolve();
+            fonts.then(function () {
+              var inner = build();
+              var tl = gsap.timeline({ paused: true });
+              tl.to(inner, { time: BASE, duration: length, ease: "none" }, 0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines[ID] = tl;
+            });
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

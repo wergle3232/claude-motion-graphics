@@ -1,0 +1,57 @@
+{
+  "$schema": "https://ograf.ebu.io/v1/specification/json-schemas/graphics/schema.json",
+  "id": "stackengine-native-route-card",
+  "version": "1.0.0",
+  "name": "StackEngine Native Route Card",
+  "description": "A deterministic OGraf HTML capability card with editable headline and accent color controls.",
+  "author": {
+    "name": "StackEngine"
+  },
+  "main": "stackengine-native-route-card.js",
+  "supportsRealTime": false,
+  "supportsNonRealTime": true,
+  "stepCount": 1,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "headline": {
+        "type": "string",
+        "title": "Headline",
+        "default": "HTML GRAPHICS, NATIVE IN RESOLVE"
+      },
+      "accentColor": {
+        "type": "string",
+        "title": "Accent Color",
+        "gddType": "color-rrggbb",
+        "pattern": "^#[0-9a-f]{6}$",
+        "default": "#00e87b"
+      }
+    },
+    "required": [
+      "headline",
+      "accentColor"
+    ]
+  },
+  "renderRequirements": [
+    {
+      "resolution": {
+        "width": {
+          "ideal": 3840
+        },
+        "height": {
+          "ideal": 2160
+        }
+      },
+      "frameRate": {
+        "ideal": 30
+      },
+      "accessToPublicInternet": {
+        "ideal": false
+      }
+    }
+  ],
+  "v_bmd": {
+    "duration": 8.6
+  }
+}

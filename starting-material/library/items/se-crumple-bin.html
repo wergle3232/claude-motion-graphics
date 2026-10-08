@@ -1,0 +1,99 @@
+<!doctype html>
+<!--
+  se-crumple-bin (StackEngine library)
+  Job: throws something away; a "no" or "scrap that". A bin rises under the words,
+  they crumple into a paper ball that drops in, the bin fills with colour and sinks.
+  From: Apple test 1, shot 10 "Scrap it." (built by hand; no library match).
+  Settings: text, size (px), scraps (comma-separated colours of the scraps in the
+  bin), length (seconds). Base 2.14 s.
+-->
+<html lang="en" data-composition-id="se-crumple-bin" data-composition-variables='[
+  {"id":"text","type":"string","label":"Text","default":"Scrap it."},
+  {"id":"size","type":"number","label":"Text size","default":176,"min":40,"max":400,"unit":"px"},
+  {"id":"scraps","type":"string","label":"Scrap colours","default":"#00e87b,#8b5cf6,#f5f5f5,#c9b8ff"},
+  {"id":"length","type":"number","label":"Length","default":2.14,"min":0.4,"max":10,"step":0.05,"unit":"s"}
+]'>
+  <body>
+    <template>
+      <div id="root" data-composition-id="se-crumple-bin" data-width="1920" data-height="1080">
+        <style>
+          #root { position: absolute; inset: 0; overflow: hidden; }
+          .se-cb-word { position: absolute; left: 0; top: 0; font-family: "Inter", sans-serif; color: #f5f5f5; font-weight: 600; letter-spacing: -0.02em; line-height: 1; white-space: nowrap; transform-origin: 50% 50%; }
+          .se-cb-can, .se-cb-ball { position: absolute; left: 0; top: 0; overflow: visible; }
+        </style>
+        <div class="se-cb-word"></div>
+        <svg class="se-cb-ball" viewBox="0 0 110 100" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="12,40 30,10 58,4 88,16 104,44 92,78 62,96 26,88 6,64" fill="#f2f2f2" />
+          <polyline points="30,10 44,46 26,88" fill="none" stroke="#b8b8c0" stroke-width="3" />
+          <polyline points="88,16 60,42 92,78" fill="none" stroke="#c8c8d0" stroke-width="3" />
+          <polyline points="44,46 60,42 62,96" fill="none" stroke="#d0d0d8" stroke-width="2.5" />
+          <polyline points="12,40 44,46" fill="none" stroke="#c0c0c8" stroke-width="2.5" />
+        </svg>
+        <svg class="se-cb-can" viewBox="0 0 150 180" xmlns="http://www.w3.org/2000/svg">
+          <g class="se-cb-scraps" opacity="0">
+            <rect x="34" y="6" width="34" height="22" rx="3" transform="rotate(-18 51 17)" />
+            <rect x="62" y="2" width="30" height="24" rx="3" transform="rotate(14 77 14)" />
+            <rect x="86" y="10" width="28" height="20" rx="3" transform="rotate(-8 100 20)" />
+            <rect x="48" y="16" width="26" height="18" rx="3" transform="rotate(24 61 25)" />
+          </g>
+          <path class="se-cb-body" d="M 14 22 L 136 22 L 124 168 Q 122 178 112 178 L 38 178 Q 28 178 26 168 Z" fill="#a8a8b4" opacity="0.45" />
+          <ellipse cx="75" cy="22" rx="61" ry="10" fill="none" stroke="#e8e8f0" stroke-width="3" opacity="0.8" />
+        </svg>
+        <script>
+          (function () {
+            "use strict";
+            var ID = "se-crumple-bin", BASE = 2.14;
+            // HyperFrames runs this with a document scoped to this copy, so "root" is this copy's root.
+            var root = document.getElementById("root");
+            var v = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            var str = function (k, d) { return v[k] == null || v[k] === "" ? d : String(v[k]); };
+            var num = function (k, d) { var n = Number(v[k]); return Number.isFinite(n) && n > 0 ? n : d; };
+            var text = str("text", "Scrap it."), size = num("size", 176), length = num("length", BASE);
+            var scrapColours = str("scraps", "#00e87b,#8b5cf6,#f5f5f5,#c9b8ff").split(",").map(function (c) { return c.trim(); });
+
+            function build() {
+              var W = root.offsetWidth || 1920, H = root.offsetHeight || 1080, k = size / 176;
+              var word = root.querySelector(".se-cb-word"), can = root.querySelector(".se-cb-can"), ball = root.querySelector(".se-cb-ball");
+              var scraps = root.querySelector(".se-cb-scraps"), body = root.querySelector(".se-cb-body");
+              word.style.fontSize = size + "px";
+              word.textContent = text;
+              Array.from(scraps.children).forEach(function (r, i) { r.setAttribute("fill", scrapColours[i % scrapColours.length]); });
+              var canW = 300 * k, canH = 360 * k, ballW = 220 * k, ballH = 200 * k;
+              can.setAttribute("width", canW); can.setAttribute("height", canH);
+              ball.setAttribute("width", ballW); ball.setAttribute("height", ballH);
+              var wy = H / 2 - word.offsetHeight / 2 - 140 * k;
+              var canX = W / 2 - canW / 2, canY = H / 2 + 70 * k;
+              gsap.set(word, { x: W / 2 - word.offsetWidth / 2 });
+              gsap.set(can, { x: canX });
+              gsap.set(ball, { x: W / 2 - ballW / 2, y: wy, scale: 0.4, opacity: 0, rotation: 0 });
+              var tl = gsap.timeline({ paused: true });
+              tl.fromTo(word, { opacity: 0, y: wy + 30 * k }, { opacity: 1, y: wy, duration: 0.18, ease: "power3.out" }, 0);
+              tl.fromTo(can, { y: H + 40, opacity: 0 }, { y: canY, opacity: 1, duration: 0.35, ease: "expo.out" }, 0.23);
+              tl.to(word, { y: wy - 24 * k, duration: 0.25, ease: "power2.out" }, 0.63);
+              // The words crumple into a ball and drop in.
+              tl.to(word, { scaleX: 0.25, scaleY: 0.5, opacity: 0, filter: "blur(2px)", duration: 0.1, ease: "power3.in" }, 0.83);
+              tl.to(ball, { opacity: 1, scale: 0.95, rotation: 40, duration: 0.1, ease: "power3.out" }, 0.85);
+              tl.to(ball, { y: canY - ballH * 0.35, scale: 0.6, rotation: 120, duration: 0.17, ease: "power2.in" }, 0.95);
+              tl.set(ball, { opacity: 0 }, 1.12);
+              tl.to(scraps, { opacity: 1, duration: 0.05 }, 1.1);
+              tl.to(body, { opacity: 0.75, duration: 0.15 }, 1.1);
+              tl.fromTo(can, { y: canY + 20 * k }, { y: canY, duration: 0.25, ease: "back.out(3)", immediateRender: false }, 1.12);
+              tl.to(can, { y: H + 40, duration: 0.3, ease: "power2.in" }, 1.83);
+              tl.set({}, {}, BASE);
+              return tl;
+            }
+
+            var fonts = document.fonts ? document.fonts.ready : Promise.resolve();
+            fonts.then(function () {
+              var inner = build();
+              var tl = gsap.timeline({ paused: true });
+              tl.to(inner, { time: BASE, duration: length, ease: "none" }, 0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines[ID] = tl;
+            });
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

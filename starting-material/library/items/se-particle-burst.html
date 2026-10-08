@@ -1,0 +1,125 @@
+<!doctype html>
+<!--
+  se-particle-burst (StackEngine library)
+  Job: a dramatic exit for a word. The word turns to glitter, bursts into coloured
+  sparkles while it glows, then smears away as smoke.
+  From: Apple test 1, shot 5 "Prompt it." (built by hand on a canvas; HyperFrames'
+  particle-text-dissolve does a similar burst once its timing is fixed, see library.md).
+  Settings: text, size (px), colours (comma-separated sparkle colours), glow (the
+  colour the word flashes), smoke (colour), length (seconds). Base 1.75 s.
+-->
+<html lang="en" data-composition-id="se-particle-burst" data-composition-variables='[
+  {"id":"text","type":"string","label":"Text","default":"Prompt it."},
+  {"id":"size","type":"number","label":"Text size","default":170,"min":40,"max":400,"unit":"px"},
+  {"id":"colours","type":"string","label":"Sparkle colours","default":"#00e87b,#8b5cf6,#f5f5f5,#7af7c0"},
+  {"id":"glow","type":"color","label":"Glow colour","default":"#00e87b"},
+  {"id":"smoke","type":"color","label":"Smoke colour","default":"#6a4bb0"},
+  {"id":"length","type":"number","label":"Length","default":1.75,"min":0.3,"max":10,"step":0.05,"unit":"s"}
+]'>
+  <body>
+    <template>
+      <div id="root" data-composition-id="se-particle-burst" data-width="1920" data-height="1080">
+        <style>
+          #root { position: absolute; inset: 0; overflow: hidden; }
+          .se-pb-word { position: absolute; left: 0; top: 0; font-family: "Inter", sans-serif; color: #f5f5f5; font-weight: 600; letter-spacing: -0.02em; line-height: 1; white-space: nowrap; }
+          .se-pb-canvas { position: absolute; left: 0; top: 0; }
+        </style>
+        <div class="se-pb-word"></div>
+        <canvas class="se-pb-canvas"></canvas>
+        <script>
+          (function () {
+            "use strict";
+            var ID = "se-particle-burst", BASE = 1.75;
+            // HyperFrames runs this with a document scoped to this copy, so "root" is this copy's root.
+            var root = document.getElementById("root");
+            var v = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            var str = function (k, d) { return v[k] == null || v[k] === "" ? d : String(v[k]); };
+            var num = function (k, d) { var n = Number(v[k]); return Number.isFinite(n) && n > 0 ? n : d; };
+            var text = str("text", "Prompt it."), size = num("size", 170), length = num("length", BASE);
+            var pal = str("colours", "#00e87b,#8b5cf6,#f5f5f5,#7af7c0").split(",").map(function (c) { return c.trim(); });
+            var glow = str("glow", "#00e87b"), smoke = str("smoke", "#6a4bb0");
+            var seed = 0x5ec0de;
+            var rnd = function () { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+
+            function build() {
+              var W = root.offsetWidth || 1920, H = root.offsetHeight || 1080, k = size / 170;
+              var word = root.querySelector(".se-pb-word"), cv = root.querySelector(".se-pb-canvas");
+              word.style.fontSize = size + "px";
+              word.textContent = text;
+              var ww = word.offsetWidth, wh = word.offsetHeight, wx = W / 2 - ww / 2, wy = H / 2 - wh / 2;
+              gsap.set(word, { x: wx, y: wy, transformOrigin: "50% 50%" });
+              cv.width = W; cv.height = H;
+              var ctx = cv.getContext("2d");
+              // Sample the word's pixels once into particles.
+              var off = document.createElement("canvas"); off.width = W; off.height = H;
+              var octx = off.getContext("2d");
+              octx.font = "600 " + size + "px Inter"; octx.textBaseline = "top"; octx.fillStyle = "#fff";
+              octx.fillText(text, wx, wy + 4 * k);
+              var data = octx.getImageData(0, 0, W, H).data, parts = [], step = Math.max(3, Math.round(5 * k));
+              for (var y = Math.max(0, Math.floor(wy - 20)); y < Math.min(H, wy + wh + 20); y += step) {
+                for (var x = Math.max(0, Math.floor(wx - 20)); x < Math.min(W, wx + ww + 20); x += step) {
+                  if (data[(y * W + x) * 4 + 3] > 128) {
+                    var a = rnd() * Math.PI * 2, d = (60 + rnd() * 420) * k;
+                    parts.push({ x: x, y: y, dx: Math.cos(a) * d, dy: Math.sin(a) * d * 0.6, b: rnd(), c: rnd(), fly: rnd() < 0.5 });
+                  }
+                }
+              }
+              var paint = function (t) {
+                ctx.clearRect(0, 0, W, H);
+                if (t < 0.5 || t > 1.75) return;
+                var frame = Math.floor(t * 30), i, p;
+                if (t < 0.75) {
+                  // Glitter: the letters made of flickering grains.
+                  for (i = 0; i < parts.length; i++) {
+                    p = parts[i]; var f = (p.b * 997 + frame * 0.37) % 1, s = (f > 0.85 ? 6 : 4) * k;
+                    ctx.fillStyle = f > 0.6 ? "#ffffff" : "rgba(200,200,215," + (0.45 + f * 0.5) + ")";
+                    ctx.fillRect(p.x - 1, p.y - 1, s, s);
+                  }
+                } else if (t < 1.25) {
+                  // Burst: half the grains fly out as sparkles.
+                  var kk = (t - 0.75) / 0.5, e = 1 - Math.pow(1 - kk, 3);
+                  for (i = 0; i < parts.length; i++) {
+                    p = parts[i]; if (!p.fly) continue;
+                    var tw = (p.b * 991 + frame * 0.53) % 1 > 0.5 ? 1 : 0.45;
+                    ctx.globalAlpha = (1 - kk * 0.6) * tw;
+                    ctx.fillStyle = pal[Math.floor(p.c * pal.length) % pal.length];
+                    ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 10;
+                    var sz = (p.c > 0.8 ? 8 : 4) * k;
+                    ctx.fillRect(p.x + p.dx * e, p.y + p.dy * e, sz, sz);
+                  }
+                  ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+                } else {
+                  // Smoke: soft puffs drift right and fade.
+                  var ks = (t - 1.25) / 0.5;
+                  ctx.fillStyle = smoke;
+                  for (i = 0; i < parts.length; i += 9) {
+                    p = parts[i];
+                    ctx.globalAlpha = Math.max(0, 0.22 * (1 - ks));
+                    ctx.beginPath(); ctx.arc(p.x + ks * (160 + p.b * 240) * k, p.y - ks * p.c * 60 * k, (18 + ks * 50) * k, 0, Math.PI * 2); ctx.fill();
+                  }
+                  ctx.globalAlpha = 1;
+                }
+              };
+              var tl = gsap.timeline({ paused: true });
+              var clock = { t: 0 };
+              tl.fromTo(clock, { t: 0 }, { t: BASE, duration: BASE, ease: "none", onUpdate: function () { paint(clock.t); } }, 0);
+              tl.set(word, { opacity: 0 }, 0.5);
+              tl.set(word, { opacity: 1, color: glow, textShadow: "0 0 40px " + glow }, 0.75);
+              tl.to(word, { color: smoke, textShadow: "0 0 0px rgba(0,0,0,0)", filter: "blur(10px)", scaleX: 1.2, x: wx + 120 * k, opacity: 0, duration: 0.5, ease: "power1.in" }, 1.22);
+              return tl;
+            }
+
+            var fonts = document.fonts ? document.fonts.ready : Promise.resolve();
+            fonts.then(function () {
+              var inner = build();
+              var tl = gsap.timeline({ paused: true });
+              tl.to(inner, { time: BASE, duration: length, ease: "none" }, 0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines[ID] = tl;
+            });
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

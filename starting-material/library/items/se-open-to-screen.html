@@ -1,0 +1,95 @@
+<!doctype html>
+<!--
+  se-open-to-screen (StackEngine library)
+  Job: brings a real screen in through the sentence that names it. Two words come
+  together into one line, the gap between them opens into a strip that shows the
+  picture scrolling, then the strip grows to fill the frame.
+  From: Apple test 1, shot 2 "Edit a video." (built by hand; HyperFrames'
+  text-state-swap idea for the words).
+  Settings: before, after (the two halves of the line), image (a wide picture inside
+  the project, for example a strip of screenshots; empty shows a brand gradient),
+  size (px), accent (glow and border), length (seconds). Base 2.05 s.
+-->
+<html lang="en" data-composition-id="se-open-to-screen" data-composition-variables='[
+  {"id":"before","type":"string","label":"First words","default":"Edit a"},
+  {"id":"after","type":"string","label":"Last word","default":"video."},
+  {"id":"image","type":"string","label":"Picture in the gap","default":""},
+  {"id":"size","type":"number","label":"Text size","default":150,"min":40,"max":400,"unit":"px"},
+  {"id":"accent","type":"color","label":"Accent","default":"#8b5cf6"},
+  {"id":"length","type":"number","label":"Length","default":2.05,"min":0.5,"max":10,"step":0.05,"unit":"s"}
+]'>
+  <body>
+    <template>
+      <div id="root" data-composition-id="se-open-to-screen" data-width="1920" data-height="1080">
+        <style>
+          #root { position: absolute; inset: 0; overflow: hidden; }
+          .se-os-word { position: absolute; left: 0; top: 0; font-family: "Inter", sans-serif; color: #f5f5f5; font-weight: 600; letter-spacing: -0.02em; line-height: 1; white-space: nowrap; transform-origin: 50% 50%; }
+          .se-os-strip { position: absolute; left: 0; top: 0; overflow: hidden; border: 3px solid; border-radius: 14px; background: #000; opacity: 0; }
+          .se-os-strip img { position: absolute; left: 0; top: 0; height: 100%; width: auto; max-width: none; }
+          .se-os-strip .se-os-fill { position: absolute; inset: 0; }
+        </style>
+        <div class="se-os-word se-os-before"></div>
+        <div class="se-os-word se-os-after"></div>
+        <div class="se-os-strip"><div class="se-os-fill"></div><img alt="" /></div>
+        <script>
+          (function () {
+            "use strict";
+            var ID = "se-open-to-screen", BASE = 2.05;
+            // HyperFrames runs this with a document scoped to this copy, so "root" is this copy's root.
+            var root = document.getElementById("root");
+            var v = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            var str = function (k, d) { return v[k] == null || v[k] === "" ? d : String(v[k]); };
+            var num = function (k, d) { var n = Number(v[k]); return Number.isFinite(n) && n > 0 ? n : d; };
+            var beforeText = str("before", "Edit a"), afterText = str("after", "video."), image = str("image", "");
+            var size = num("size", 150), accent = str("accent", "#8b5cf6"), length = num("length", BASE);
+
+            function build() {
+              // The test was built at 84 px type; distances scale with the type size.
+              var W = root.offsetWidth || 1920, H = root.offsetHeight || 1080, cx = W / 2, cy = H / 2, k = size / 84;
+              var a = root.querySelector(".se-os-before"), b = root.querySelector(".se-os-after"), strip = root.querySelector(".se-os-strip");
+              var img = strip.querySelector("img"), fill = strip.querySelector(".se-os-fill");
+              a.style.fontSize = b.style.fontSize = size + "px";
+              a.textContent = beforeText; b.textContent = afterText;
+              if (image) { img.src = image; fill.style.display = "none"; }
+              else { img.style.display = "none"; fill.style.background = "linear-gradient(120deg, #1a0a3e, " + accent + " 55%, #00e87b)"; }
+              strip.style.borderColor = accent;
+              strip.style.boxShadow = "0 0 40px " + accent;
+              var aw = a.offsetWidth, bw = b.offsetWidth, wh = a.offsetHeight, sp = 0.26 * size;
+              var lineW = aw + sp + bw, lx = cx - lineW / 2, ly = cy - wh / 2;
+              var tl = gsap.timeline({ paused: true });
+              // The first words arrive glowing from the right over a ghosted last word below.
+              tl.fromTo(a, { x: cx + 50 * k, y: ly - 55 * k, scale: 1.6, opacity: 0, filter: "blur(14px)", color: accent, textShadow: "0 0 40px " + accent },
+                { x: cx - 60 * k, y: ly - 75 * k, opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "expo.out" }, 0);
+              tl.fromTo(b, { x: cx - 140 * k, y: ly + 80 * k, scale: 1.6, opacity: 0, filter: "blur(6px)" }, { opacity: 0.35, duration: 0.25, ease: "power2.out" }, 0.05);
+              tl.to(b, { x: cx, duration: 0.5, ease: "power2.inOut" }, 0.35);
+              // They settle into one white line.
+              tl.to(a, { x: lx, y: ly, scale: 1, color: "#f5f5f5", textShadow: "0 0 0px rgba(0,0,0,0)", duration: 0.25, ease: "power3.inOut" }, 0.9);
+              tl.to(b, { x: lx + aw + sp, y: ly, scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.25, ease: "power3.inOut" }, 0.9);
+              // The gap opens into a strip showing the picture.
+              var stripW = 380 * k, stripH = 110 * k, sx = lx + aw + sp / 2;
+              gsap.set(strip, { x: sx, y: cy - stripH / 2, width: 0, height: stripH });
+              tl.to(a, { x: lx - stripW / 2, duration: 0.3, ease: "power3.out" }, 1.25);
+              tl.to(b, { x: lx + aw + sp + stripW / 2 + 10 * k, duration: 0.3, ease: "power3.out" }, 1.25);
+              tl.to(strip, { x: sx - stripW / 2 + 4, width: stripW, opacity: 1, duration: 0.3, ease: "power3.out" }, 1.25);
+              if (image) tl.fromTo(img, { x: 0 }, { x: -900 * k, duration: 0.8, ease: "none" }, 1.25);
+              // The words leave; the strip grows to fill the frame.
+              tl.to([a, b], { opacity: 0, duration: 0.15, ease: "power1.in" }, 1.65);
+              tl.to(strip, { x: 0, y: 0, width: W, height: H, borderWidth: 0, borderRadius: 0, boxShadow: "0 0 0px rgba(0,0,0,0)", duration: 0.35, ease: "power3.inOut" }, 1.65);
+              tl.set({}, {}, BASE);
+              return tl;
+            }
+
+            var fonts = document.fonts ? document.fonts.ready : Promise.resolve();
+            fonts.then(function () {
+              var inner = build();
+              var tl = gsap.timeline({ paused: true });
+              tl.to(inner, { time: BASE, duration: length, ease: "none" }, 0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines[ID] = tl;
+            });
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

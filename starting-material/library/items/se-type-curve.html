@@ -1,0 +1,97 @@
+<!doctype html>
+<!--
+  se-type-curve (StackEngine library)
+  Job: shows writing or drafting. A caret blinks, the words type in (in the accent,
+  turning white), then the line bends onto a rising curve as a pen line draws under it.
+  From: Apple test 1, shot 9 "Write it." (built by hand; the curve is HyperFrames'
+  hw-path-text idea on an SVG text path).
+  Settings: text, size (px), accent (caret, typing colour and pen line), length (seconds). Base 1.12 s.
+-->
+<html lang="en" data-composition-id="se-type-curve" data-composition-variables='[
+  {"id":"text","type":"string","label":"Text","default":"Write it."},
+  {"id":"size","type":"number","label":"Text size","default":160,"min":40,"max":400,"unit":"px"},
+  {"id":"accent","type":"color","label":"Accent","default":"#8b5cf6"},
+  {"id":"length","type":"number","label":"Length","default":1.12,"min":0.3,"max":10,"step":0.05,"unit":"s"}
+]'>
+  <body>
+    <template>
+      <div id="root" data-composition-id="se-type-curve" data-width="1920" data-height="1080">
+        <style>
+          #root { position: absolute; inset: 0; overflow: hidden; }
+          .se-tc-svg { position: absolute; left: 0; top: 0; overflow: visible; }
+          .se-tc-caret { position: absolute; left: 0; top: 0; width: 8px; }
+        </style>
+        <svg class="se-tc-svg" xmlns="http://www.w3.org/2000/svg">
+          <path class="se-tc-path" d="" fill="none" stroke="none" />
+          <path class="se-tc-pen" d="" fill="none" stroke-width="5" stroke-linecap="round" />
+          <text class="se-tc-text" font-family="Inter" font-weight="600" fill="#f5f5f5" letter-spacing="-2"><textPath class="se-tc-tp"></textPath></text>
+        </svg>
+        <div class="se-tc-caret"></div>
+        <script>
+          (function () {
+            "use strict";
+            var ID = "se-type-curve", BASE = 1.12;
+            // HyperFrames runs this with a document scoped to this copy, so "root" is this copy's root.
+            var root = document.getElementById("root");
+            var v = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            var str = function (k, d) { return v[k] == null || v[k] === "" ? d : String(v[k]); };
+            var num = function (k, d) { var n = Number(v[k]); return Number.isFinite(n) && n > 0 ? n : d; };
+            var text = str("text", "Write it."), size = num("size", 160), accent = str("accent", "#8b5cf6"), length = num("length", BASE);
+            var NS = "http://www.w3.org/2000/svg";
+
+            function build() {
+              var W = root.offsetWidth || 1920, H = root.offsetHeight || 1080, cx = W / 2, B = H / 2 + size * 0.38;
+              var svg = root.querySelector(".se-tc-svg"), path = root.querySelector(".se-tc-path"), pen = root.querySelector(".se-tc-pen");
+              var txt = root.querySelector(".se-tc-text"), tp = root.querySelector(".se-tc-tp"), caret = root.querySelector(".se-tc-caret");
+              svg.setAttribute("width", W); svg.setAttribute("height", H); svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+              txt.setAttribute("font-size", size);
+              // Each copy has its own path id, so two copies in one video don't share a curve.
+              window.__seTypeCurveCount = (window.__seTypeCurveCount || 0) + 1;
+              var pid = "se-tc-path-" + window.__seTypeCurveCount;
+              path.setAttribute("id", pid);
+              tp.setAttribute("href", "#" + pid);
+              var chars = Array.from(text).map(function (c) { var t = document.createElementNS(NS, "tspan"); t.textContent = c; tp.appendChild(t); return t; });
+              path.setAttribute("d", "M 0 " + B + " L " + W * 2 + " " + B);
+              var L = txt.getComputedTextLength ? txt.getComputedTextLength() : size * 2.2;
+              var wx = cx - L / 2;
+              var straight = "M " + wx + " " + B + " C " + (wx + 0.6 * L) + " " + B + ", " + (wx + 1.2 * L) + " " + B + ", " + (wx + 1.8 * L) + " " + B;
+              var curved = "M " + (cx - 0.62 * L) + " " + (B + 150 * size / 160) + " C " + (cx - 0.3 * L) + " " + (B - 20 * size / 160) + ", " + (cx + 0.15 * L) + " " + (B - 110 * size / 160) + ", " + (cx + 0.95 * L) + " " + (B - 330 * size / 160);
+              var k = size / 160;
+              pen.setAttribute("d", "M " + (cx - 0.95 * L) + " " + (B + 300 * k) + " C " + (cx - 0.4 * L) + " " + (B + 240 * k) + ", " + (cx + 0.1 * L) + " " + (B + 90 * k) + ", " + (cx + 0.45 * L) + " " + (B - 120 * k) + " S " + (cx + 0.8 * L) + " " + (B - 400 * k) + ", " + (cx + 0.95 * L) + " " + (B - 430 * k));
+              pen.setAttribute("stroke", accent);
+              path.setAttribute("d", straight);
+              gsap.set(chars, { opacity: 0 });
+              gsap.set(caret, { backgroundColor: accent, height: size * 1.05, x: wx, y: B - size * 0.81, opacity: 1 });
+              var tl = gsap.timeline({ paused: true });
+              // A blinking caret, then the letters type in the accent and turn white.
+              tl.fromTo(caret, { opacity: 1 }, { opacity: 0, duration: 0.01, immediateRender: false }, 0.08);
+              tl.set(caret, { opacity: 1 }, 0.12);
+              var step = 0.045;
+              chars.forEach(function (c, i) {
+                tl.fromTo(c, { opacity: 0, fill: accent }, { opacity: 1, duration: 0.01, immediateRender: false }, 0.15 + i * step);
+                tl.to(c, { fill: "#f5f5f5", duration: 0.15 }, 0.15 + i * step + 0.12);
+              });
+              tl.to(caret, { x: wx + L + 8, duration: chars.length * step, ease: "steps(" + chars.length + ")" }, 0.15);
+              tl.set(caret, { opacity: 0 }, 0.15 + chars.length * step + 0.05);
+              tl.to(path, { attr: { d: curved }, duration: 0.3, ease: "power3.inOut" }, 0.56);
+              var penL = pen.getTotalLength();
+              gsap.set(pen, { strokeDasharray: penL, strokeDashoffset: penL });
+              tl.to(pen, { strokeDashoffset: 0, duration: 0.45, ease: "power2.out" }, 0.6);
+              tl.set({}, {}, BASE);
+              return tl;
+            }
+
+            var fonts = document.fonts ? document.fonts.ready : Promise.resolve();
+            fonts.then(function () {
+              var inner = build();
+              var tl = gsap.timeline({ paused: true });
+              tl.to(inner, { time: BASE, duration: length, ease: "none" }, 0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines[ID] = tl;
+            });
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>
