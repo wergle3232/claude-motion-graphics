@@ -28,7 +28,7 @@ Files in this folder, read when the step says:
 
 ## Before the first piece
 
-1. **Check the tools** quietly: `node --version` (18 or newer), `ffmpeg -version`, and that HyperFrames' skills are installed (a `hyperframes-core` skill is listed, or `~/.claude/skills/hyperframes-core/` exists). If something is missing, say exactly what, point to the README's install section, and stop.
+1. **Check the tools** quietly: `node --version` (22 or newer; HyperFrames needs it), `ffmpeg -version`, and that HyperFrames' skills are installed (a `hyperframes-core` skill is listed, or `~/.claude/skills/hyperframes-core/` exists). If something is missing, say exactly what, point to the README's install section, and stop.
 2. **Brand.** Look for `brand.md` in the working folder. If there is none, follow [brand-setup.md](brand-setup.md) before anything else. Read brand.md at the start of every piece and every round; it may have changed.
 
 ## One piece, start to finish

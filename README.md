@@ -88,7 +88,7 @@ Still in Terminal (Mac) or PowerShell (Windows):
    claude --version
    ```
 
-   Node must be 18 or newer. If one says "not found" or "not recognized", close the window, open it again and retry; if it still fails, see [Troubleshooting](#troubleshooting).
+   Node must be 22 or newer (HyperFrames needs it). If it is older, install a newer one: `brew upgrade node` on a Mac, `winget upgrade --id OpenJS.NodeJS.LTS -e` on Windows. If one says "not found" or "not recognized", close the window, open it again and retry; if it still fails, see [Troubleshooting](#troubleshooting).
 
 2. **Sign in to Claude Code** (only the first time): type `claude`, press Enter, and follow the steps in your browser. When you see Claude's prompt, type `/exit` to leave again.
 

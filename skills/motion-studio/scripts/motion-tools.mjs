@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Mechanical jobs for motion pieces, so no model time is spent on them.
-// Needs Node 18+ and FFmpeg (ffmpeg and ffprobe on the PATH). No other installs.
+// Needs Node 22+ (as HyperFrames does) and FFmpeg (ffmpeg and ffprobe on the PATH). No other installs.
 //
 // Run with no arguments, or with "help", to see every command.
 
