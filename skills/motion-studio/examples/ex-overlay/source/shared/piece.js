@@ -1,8 +1,8 @@
-// ex-overlay: graphics over a talking head. The clip is Wayne's own recording (2026-10-07), 15 s, where he
+// ex-overlay: graphics over a talking head. The clip (not included: use your own) is a 15 s talking head where the speaker
 // says: "So here's the scoreboard. GPT image 2.5 won five of the seven jobs. The bedroom, the family
 // room, the amp photo, the print ad and the poster. Nano Banano took the infographic and the house
 // front was a split." Every graphic lands on its word. Times are seconds into the clip.
-// MORF look; the words on the graphics are his words. The entry file sets the canvas (and the
+// MORF look; the words on the graphics are the speaker's words. The entry file sets the canvas (and the
 // footage, in the preview); this builds the graphics and the timeline.
 (function () {
   "use strict";
@@ -30,7 +30,7 @@
     function out(el, t, dx) { tl.to(el, { x: dx, duration: 0.18, ease: "power3.in" }, t); tl.set(el, { opacity: 0 }, t + 0.19); }
 
     // 1. Name bar (lower left), slides in from the left edge, leaves before the next graphic.
-    var name = plate("name", "WAYNE ERGLE", 96, 790);
+    var name = plate("name", "YOUR NAME", 96, 790);
     slideIn(name, 0.1, -700);
     out(name, 1.4, -700);
 
