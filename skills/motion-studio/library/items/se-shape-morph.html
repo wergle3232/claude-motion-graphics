@@ -1,0 +1,103 @@
+<!doctype html>
+<!--
+  se-shape-morph (claude-motion-graphics library)
+  Job: changing one shape into another, many times (an idea taking shape, options, steps).
+  One shape snaps through a chain of forms on a beat, with a quarter turn and a punch on
+  each, changing colour as it goes.
+  From: the MORF "shapes" example (ex-shapes, the square that becomes circle, triangle, star).
+  How: every form is the same 48-point outline (cast from the centre), and the points are
+  blended in onUpdate from a proxy. GSAP does not blend clip-path polygon strings itself
+  (it jumps to the end), so keep this technique when building new morphs.
+  Settings: chain (comma list of square, circle, triangle, star, diamond; the first is the
+  start), colours (comma list per step: text, accent, accent-2 or a #hex), size (px), step
+  (seconds per form), length (seconds; the move fits it). Base 1.5 s for the default chain
+  (0.3 s + 0.3 s a form).
+  Brand: colour names come from the piece's brand.css (--brand-*).
+-->
+<html lang="en" data-composition-id="se-shape-morph" data-composition-variables='[
+  {"id":"chain","type":"string","label":"Forms (comma list)","default":"square,circle,triangle,star,circle"},
+  {"id":"colours","type":"string","label":"Colour of each form (text, accent, accent-2 or #hex)","default":"text,accent,text,accent,accent"},
+  {"id":"size","type":"number","label":"Shape size","default":360,"min":60,"max":1000,"unit":"px"},
+  {"id":"step","type":"number","label":"Seconds per form","default":0.3,"min":0.1,"max":2,"step":0.05,"unit":"s"},
+  {"id":"length","type":"number","label":"Length","default":1.5,"min":0.3,"max":20,"step":0.05,"unit":"s"}
+]'>
+  <body>
+    <template>
+      <div id="root" data-composition-id="se-shape-morph">
+        <style>
+          #root { position: absolute; inset: 0; overflow: hidden; }
+          .se-sm-shape { position: absolute; left: 0; top: 0; }
+        </style>
+        <div class="se-sm-shape"></div>
+        <script>
+          (function () {
+            "use strict";
+            var ID = "se-shape-morph";
+            var root = document.getElementById("root");
+            var brand = function (n, d) { var x = getComputedStyle(root).getPropertyValue("--brand-" + n).trim(); return x || d; };
+            var v = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            var str = function (k, d) { return v[k] == null || v[k] === "" ? d : String(v[k]); };
+            var num = function (k, d) { var n = Number(v[k]); return Number.isFinite(n) && n > 0 ? n : d; };
+            var chain = str("chain", "square,circle,triangle,star,circle").split(",").map(function (s) { return s.trim(); });
+            var cols = str("colours", "text,accent,text,accent,accent").split(",").map(function (s) { s = s.trim(); return s.charAt(0) === "#" ? s : brand(s, "#ff3d00"); });
+            var size = num("size", 360), STEP = num("step", 0.3);
+            var BASE = 0.3 + (chain.length - 1) * STEP, length = num("length", BASE);
+
+            // Every form as the same 48-point polygon: rays from the centre to the outline.
+            var NPTS = 48;
+            function rayHit(dx, dy, verts) {
+              var best = Infinity;
+              for (var i = 0; i < verts.length; i++) {
+                var a = verts[i], b = verts[(i + 1) % verts.length], ex = b[0] - a[0], ey = b[1] - a[1], den = dx * ey - dy * ex;
+                if (Math.abs(den) < 1e-9) continue;
+                var t = (a[0] * ey - a[1] * ex) / den, u = (a[0] * dy - a[1] * dx) / den;
+                if (t > 0 && u >= -1e-9 && u <= 1 + 1e-9 && t < best) best = t;
+              }
+              return best;
+            }
+            function poly(verts) {
+              var pts = [];
+              for (var k = 0; k < NPTS; k++) {
+                var th = -Math.PI / 2 + (k * 2 * Math.PI) / NPTS, dx = Math.cos(th), dy = Math.sin(th), r = verts ? rayHit(dx, dy, verts) : 1;
+                pts.push([50 + 50 * r * dx, 50 + 50 * r * dy]);
+              }
+              return pts;
+            }
+            function clip(a, b, t) { return "polygon(" + a.map(function (p, i) { return (p[0] + (b[i][0] - p[0]) * t).toFixed(2) + "% " + (p[1] + (b[i][1] - p[1]) * t).toFixed(2) + "%"; }).join(", ") + ")"; }
+            var star = [];
+            for (var s = 0; s < 10; s++) { var an = -Math.PI / 2 + (s * Math.PI) / 5, rr = s % 2 ? 0.45 : 1; star.push([rr * Math.cos(an), rr * Math.sin(an)]); }
+            var FORM = { square: poly([[-1, -1], [1, -1], [1, 1], [-1, 1]]), circle: poly(null), triangle: poly([[0, -1], [1, 0.85], [-1, 0.85]]), star: poly(star), diamond: poly([[0, -1], [1, 0], [0, 1], [-1, 0]]) };
+            var form = function (n) { return FORM[n] || FORM.square; };
+
+            function build() {
+              var W = root.offsetWidth || 1920, H = root.offsetHeight || 1080;
+              var el = root.querySelector(".se-sm-shape");
+              el.style.width = el.style.height = size + "px";
+              gsap.set(el, { x: W / 2 - size / 2, y: H / 2 - size / 2, backgroundColor: cols[0], clipPath: clip(form(chain[0]), form(chain[0]), 0) });
+              var tl = gsap.timeline({ paused: true });
+              tl.fromTo(el, { scale: 0 }, { scale: 1, duration: 0.22, ease: "back.out(2.6)" }, 0);
+              for (var i = 1; i < chain.length; i++) (function (i) {
+                var t = 0.3 + (i - 1) * STEP, a = form(chain[i - 1]), b = form(chain[i]), m = { t: 0 };
+                tl.fromTo(m, { t: 0 }, { t: 1, immediateRender: false, duration: Math.min(0.18, STEP * 0.6), ease: "back.out(1.8)", onUpdate: function () { el.style.clipPath = clip(a, b, m.t); } }, t);
+                tl.set(el, { backgroundColor: cols[i % cols.length] }, t + 0.03);
+                tl.fromTo(el, { rotation: i % 2 ? 50 : -50 }, { rotation: 0, immediateRender: false, duration: Math.min(0.24, STEP * 0.8), ease: "back.out(2)" }, t);
+                tl.fromTo(el, { scale: 1.16 }, { scale: 1, immediateRender: false, duration: Math.min(0.22, STEP * 0.75), ease: "power2.out" }, t);
+              })(i);
+              tl.set({}, {}, BASE);
+              return tl;
+            }
+
+            var ready = document.fonts ? document.fonts.ready : Promise.resolve();
+            ready.then(function () {
+              var inner = build();
+              var tl = gsap.timeline({ paused: true });
+              tl.to(inner, { time: BASE, duration: length, ease: "none" }, 0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines[ID] = tl;
+            });
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

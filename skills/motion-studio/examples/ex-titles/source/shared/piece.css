@@ -1,0 +1,45 @@
+/* ex-titles: the look (MORF brand). Colours and fonts come from brand.css. Flat: no glow, no gradients. */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { overflow: hidden; background: var(--brand-bg); }
+#root { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--brand-bg); color: var(--brand-text); font-family: var(--brand-font-body), sans-serif; }
+
+#stage { position: absolute; inset: 0; }
+#cam { position: absolute; inset: 0; }
+
+/* Swiss grid: a thick rule across the top, a thinner one across the bottom. */
+#topline { position: absolute; left: 96px; right: 96px; top: var(--top-y); height: 10px; background: var(--brand-text); transform-origin: 0% 50%; }
+#botline { position: absolute; left: 96px; right: 96px; top: var(--bot-y); height: 4px; background: var(--brand-text); transform-origin: 100% 50%; }
+#flash { position: absolute; inset: 0; background: var(--brand-text); opacity: 0; }
+
+#eyebrow { position: absolute; left: var(--x0); top: var(--eyebrow-y); font-family: var(--brand-font-mono), monospace; font-weight: 500; font-size: 64px; line-height: 1; letter-spacing: 0.1em; color: var(--brand-text); white-space: nowrap; }
+#eyebrow .c { display: inline-block; white-space: pre; }
+
+/* The title: two huge heavy lines. */
+.title { position: absolute; left: var(--x0); top: var(--title-y); font-family: var(--brand-font-display), sans-serif; font-weight: 400; font-size: var(--title-size); line-height: 0.96; letter-spacing: -0.035em; white-space: nowrap; color: var(--brand-text); }
+.title .line { display: block; height: 0.96em; }
+.title .c { display: inline-block; white-space: pre; text-align: center; }
+#w1 { transform-origin: 0% 70%; }
+.title .g { color: var(--brand-accent); }
+
+/* Glitch split: horizontal bands of the title that slide apart, plus red and grey ghosts. */
+.band { position: absolute; inset: 0; opacity: 0; }
+.ghost { position: absolute; inset: 0; opacity: 0; mix-blend-mode: multiply; }
+.ghost .title, .ghost .title .g { color: var(--brand-accent); }
+.ghost.gr .title, .ghost.gr .title .g { color: var(--brand-accent-2); }
+
+/* A red bar that slams under "graphics" in the hold. */
+#underbar { position: absolute; left: var(--x0); top: var(--bar-y); width: var(--bar-w); height: 22px; background: var(--brand-accent); transform-origin: 0% 50%; }
+
+/* Type specimen on the right: "Aa" on the brand's red circle, swapping fonts with the word. */
+#disc { position: absolute; right: var(--spec-r); top: var(--spec-y); width: var(--disc); height: var(--disc); border-radius: 50%; background: var(--brand-accent); }
+#spec { position: absolute; right: var(--spec-r); top: var(--spec-y); width: var(--disc); height: var(--disc); display: flex; align-items: center; justify-content: center; font-family: var(--brand-font-display), sans-serif; font-size: 230px; line-height: 1; letter-spacing: -0.03em; color: var(--brand-text); white-space: nowrap; }
+#spec-label { position: absolute; right: var(--spec-r); top: var(--eyebrow-y); font-family: var(--brand-font-mono), monospace; font-weight: 500; font-size: 64px; line-height: 1; color: var(--brand-muted); white-space: nowrap; }
+
+/* The second line: "made with" typed, "Claude Code" in a solid black block. */
+#sub { position: absolute; left: var(--x0); top: var(--sub-y); display: flex; align-items: center; font-family: var(--brand-font-body), sans-serif; font-weight: 500; font-size: var(--sub-size); line-height: 1; white-space: nowrap; }
+#sub .lead { color: var(--brand-text); }
+#sub .lead .c { display: inline-block; white-space: pre; }
+#tag { position: relative; margin-left: 0.3em; padding: 0.12em 0.28em 0.16em; font-family: var(--brand-font-display), sans-serif; letter-spacing: -0.02em; color: var(--brand-bg); }
+#tag .blk { position: absolute; inset: 0; background: var(--brand-text); transform-origin: 0% 50%; }
+#tag .t { position: relative; display: inline-block; }
+#caret { position: absolute; left: 0; top: 0; width: 0.5em; height: 1em; background: var(--brand-accent); font-size: var(--sub-size); }

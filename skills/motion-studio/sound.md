@@ -12,6 +12,7 @@ Most feeds play muted, so every piece must work with no sound. Sound is still wo
 ## Where sound comes from
 
 - **Effects:** HyperFrames ships a set of effects (whoosh, pop, click, chime, typing, riser and others) in its `media-use` skill: `~/.claude/skills/media-use/audio/assets/sfx/`, with a `manifest.json` describing each and `CREDITS.md` with the licence (Pixabay Content License, free to use in videos). Copy the ones used into `source/assets/sfx/`.
+- **Effects made for the piece:** a simple sound (a thud, a tick, a soft hit) can be made with FFmpeg's `aevalsrc` (a sine that drops in pitch and fades fast, plus a little noise for the attack), saved in `source/assets/sfx/`. No licence is needed. Say in the notes that it was made for the piece. Music made by code sounded mechanical when tried, so keep this to short effects.
 - **Music:** the user chooses and downloads it; Claude never downloads music on its own. Good sources whose licences allow use in videos posted online:
   - Pixabay Music (pixabay.com/music): free, no attribution required, use in videos allowed; the music file itself may not be redistributed on its own.
   - YouTube Audio Library (studio.youtube.com, Audio Library): free; some tracks require attribution in the description; safest for YouTube.

@@ -56,12 +56,15 @@ Sound
 
 Review and records
   page     <folder> [--title "..."]      writes <folder>/index.html: every render, sheet
-                                         and note in the folder, with a notes panel
-  review   <piece> [--port 4321]         serves the piece's pages; notes typed on a page
-                                         are saved to <version>/feedback.md
-  cost     <piece> --round "v1" [--session <id>] [--model <id>]
+                                         and note in the folder (feedback goes in the chat)
+  serve    <folder> [--port 4321]        serves a folder's pages at http://localhost:<port>/
+                                         so videos play in any browser or viewer
+                                         ("review" is the old name and still works)
+  cost     <piece> --round "v1" [--session <id>] [--since <ISO time>]
                                          adds this round's token use and API price to
-                                         <piece>/cost.md (Claude Code only)
+                                         <piece>/cost.md, split into what Claude wrote and
+                                         the cost of re-reading the chat (Claude Code only;
+                                         only when the user asks for cost counting)
   library  <project> [item...]           preview clips of library items in <project>/previews
 `;
 
@@ -661,57 +664,19 @@ figure { margin:0; background:var(--card); border:1px solid var(--line); border-
 figcaption { font-size: 14px; color: var(--muted); margin-top: 6px; word-break: break-all; }
 video, img { width:100%; height:auto; display:block; border-radius:6px; background: repeating-conic-gradient(#bbb 0 25%, #eee 0 50%) 0 0/20px 20px; }
 .sheet img { background:none; } pre { white-space: pre-wrap; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px; font-size:14px; }
-button { font: inherit; border:1px solid var(--line); background:var(--card); color:var(--fg); border-radius:8px; padding:6px 12px; cursor:pointer; }
-button.primary { background: var(--accent); color:#fff; border-color: var(--accent); }
-#notes { position: fixed; right: 16px; bottom: 16px; width: min(420px, calc(100vw - 32px)); background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px; box-shadow: 0 8px 30px rgba(0,0,0,.18); }
-#notes textarea { width:100%; min-height: 70px; font: inherit; border:1px solid var(--line); border-radius:8px; padding:8px; background:var(--bg); color:var(--fg); }
-#list { max-height: 30vh; overflow:auto; font-size: 14px; margin: 8px 0; padding-left: 18px; } .row { display:flex; gap:8px; flex-wrap: wrap; }
-#status { font-size: 13px; color: var(--muted); }
 </style></head><body><main>
 <h1>${esc(title)}</h1>
-<p class="hint">To leave a note: pause a video where something is wrong, type in the box at the bottom right and press Add note. The time and the video's name are added for you.</p>
+<p class="hint">Feedback goes in the chat with Claude: say which video and the moment in seconds, for example "draft-9x16 at 4.5 s: the logo comes in too late".</p>
+${/^storyboard/i.test(path.basename(path.resolve(folder))) ? `<p class="hint"><b>The storyboard video only flips through still frames; it is not the animation.</b></p>` : ""}
+<p class="hint" id="filehint" hidden>If the videos do not play here, ask Claude to serve this page (<code>tools serve</code>) and open the address it gives.</p>
 ${videos.length ? `<h2>Videos</h2><div class="grid">${videos.map((v) => `<figure><video controls preload="metadata" src="${esc(v)}" data-name="${esc(v)}"></video><figcaption>${esc(v)}</figcaption></figure>`).join("")}</div>` : ""}
 ${sheets.length ? `<h2>Contact sheet and phone test</h2>${sheets.map((s) => `<figure class="sheet"><a href="${esc(s)}"><img src="${esc(s)}" alt="${esc(s)}"></a><figcaption>${esc(s)}</figcaption></figure>`).join("")}` : ""}
 ${images.length ? `<h2>Frames and slides</h2><div class="grid">${images.map((s) => `<figure><a href="${esc(s)}"><img src="${esc(s)}" alt="${esc(s)}" data-name="${esc(s)}"></a><figcaption>${esc(s)}</figcaption></figure>`).join("")}</div>` : ""}
 ${pdfs.length ? `<h2>PDF</h2>${pdfs.map((p) => `<p><a href="${esc(p)}">${esc(p)}</a></p>`).join("")}` : ""}
 ${docs.map((d) => `<h2>${esc(d)}</h2><pre>${esc(fs.readFileSync(path.join(folder, d), "utf8"))}</pre>`).join("")}
 </main>
-<div id="notes"><strong>Notes</strong>
-<ol id="list"></ol>
-<textarea id="text" placeholder="What should change? For example: the logo comes in too late"></textarea>
-<div class="row"><button class="primary" id="add">Add note</button><button id="save">Save notes</button><button id="copy">Copy notes</button></div>
-<div id="status"></div></div>
-<script>
-(function () {
-  var KEY = "notes:" + location.pathname, notes = [];
-  try { notes = JSON.parse(localStorage.getItem(KEY) || "[]"); } catch (e) {}
-  var list = document.getElementById("list"), text = document.getElementById("text"), status = document.getElementById("status"), last = null;
-  document.querySelectorAll("video").forEach(function (v) { ["play", "pause", "seeked"].forEach(function (e) { v.addEventListener(e, function () { last = v; }); }); });
-  function stamp(t) { var m = Math.floor(t / 60), s = (t % 60).toFixed(1); return m + ":" + (s < 10 ? "0" : "") + s; }
-  function show() {
-    list.innerHTML = notes.map(function (n, i) { return "<li>" + (n.where ? "<b>" + n.where + "</b> " : "") + n.text.replace(/</g, "&lt;") + " <a href='#' data-i='" + i + "'>remove</a></li>"; }).join("");
-    try { localStorage.setItem(KEY, JSON.stringify(notes)); } catch (e) {}
-  }
-  list.addEventListener("click", function (e) { if (e.target.dataset.i) { e.preventDefault(); notes.splice(+e.target.dataset.i, 1); show(); } });
-  document.getElementById("add").onclick = function () {
-    if (!text.value.trim()) return;
-    notes.push({ where: last ? last.dataset.name + " at " + stamp(last.currentTime) : "", text: text.value.trim() });
-    text.value = ""; show();
-  };
-  function asText() { return notes.map(function (n) { return "- " + (n.where ? n.where + ": " : "") + n.text; }).join("\\n"); }
-  document.getElementById("copy").onclick = function () {
-    navigator.clipboard.writeText(asText()).then(function () { status.textContent = "Copied. Paste the notes into the chat with Claude."; }, function () { status.textContent = "Could not copy. Select the notes above and copy them by hand."; });
-  };
-  document.getElementById("save").onclick = function () {
-    if (location.protocol === "file:") { status.textContent = "Saving needs the review page (ask Claude to open it). Use Copy notes and paste them into the chat instead."; return; }
-    fetch("feedback", { method: "POST", headers: { "content-type": "text/plain" }, body: asText() }).then(function (r) {
-      status.textContent = r.ok ? "Saved to feedback.md in this folder. Tell Claude your notes are ready." : "Could not save. Use Copy notes instead.";
-      if (r.ok) { notes = []; show(); }
-    }, function () { status.textContent = "Could not save. Use Copy notes instead."; });
-  };
-  show();
-})();
-</script></body></html>
+<script>if (location.protocol === "file:") document.getElementById("filehint").hidden = false;</script>
+</body></html>
 `;
   fs.writeFileSync(path.join(folder, "index.html"), html);
   console.log(`${path.join(folder, "index.html")}: ${videos.length} videos, ${sheets.length + images.length} images, ${docs.length} notes`);
@@ -719,27 +684,14 @@ ${docs.map((d) => `<h2>${esc(d)}</h2><pre>${esc(fs.readFileSync(path.join(folder
 
 const MIME = { ".html": "text/html; charset=utf-8", ".mp4": "video/mp4", ".webm": "video/webm", ".mov": "video/quicktime", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".pdf": "application/pdf", ".md": "text/plain; charset=utf-8", ".txt": "text/plain; charset=utf-8", ".css": "text/css", ".js": "text/javascript", ".m4a": "audio/mp4", ".mp3": "audio/mpeg", ".svg": "image/svg+xml" };
 
-function review({ pos, opt }) {
+function serve({ pos, opt }) {
   const [piece] = pos;
-  if (!piece || !fs.existsSync(piece)) die("review <piece> [--port 4321]");
+  if (!piece || !fs.existsSync(piece)) die("serve <folder> [--port 4321]");
   const root = path.resolve(piece), port = Number(opt.port) || 4321;
   const server = http.createServer((req, res) => {
     const url = decodeURIComponent(req.url.split("?")[0]);
     const file = path.join(root, url);
     if (!file.startsWith(root)) { res.writeHead(403).end(); return; }
-    if (req.method === "POST" && url.endsWith("/feedback")) {
-      let body = "";
-      req.on("data", (c) => (body += c));
-      req.on("end", () => {
-        const dir = path.dirname(file);
-        const out = path.join(dir, "feedback.md");
-        const head = fs.existsSync(out) ? "" : `# Feedback on ${path.basename(dir)}\n\nNotes typed on the review page. Claude reads this file.\n`;
-        fs.appendFileSync(out, `${head}\n## ${new Date().toISOString().slice(0, 16).replace("T", " ")}\n\n${body.trim()}\n`);
-        console.log(`Saved notes to ${out}`);
-        res.writeHead(200).end("ok");
-      });
-      return;
-    }
     let f = file;
     if (fs.existsSync(f) && fs.statSync(f).isDirectory()) {
       f = path.join(f, "index.html");
@@ -761,7 +713,7 @@ function review({ pos, opt }) {
       fs.createReadStream(f).pipe(res);
     }
   });
-  server.listen(port, "127.0.0.1", () => console.log(`Review page: http://localhost:${port}/  (stop with Ctrl+C)`));
+  server.listen(port, "127.0.0.1", () => console.log(`Serving ${root} at http://localhost:${port}/  (stop with Ctrl+C)`));
 }
 
 // ---------- cost log ----------
@@ -785,20 +737,42 @@ function priceFor(prices, model) {
   return prices.models[id] || Object.entries(prices.models).find(([k]) => id.startsWith(k))?.[1] || null;
 }
 
+// When this piece started, for its first round in a session: the folder's (or brief.md's)
+// creation time, so a session that made other pieces first is not counted against this one.
+function pieceStart(piece) {
+  const born = (f) => { try { const st = fs.statSync(f); return st.birthtimeMs > 0 ? st.birthtimeMs : 0; } catch { return 0; } };
+  const t = [born(piece), born(path.join(piece, "brief.md"))].filter((x) => x > 0);
+  return t.length ? new Date(Math.min(...t)).toISOString() : "";
+}
+
+// A round's price split three ways: what Claude wrote (the work itself, its thinking included),
+// re-reading the conversation from the cache on every step, and loading it into the cache.
+function split(r, prices) {
+  if (r.usdWrote != null) return r;
+  const p = priceFor(prices, r.models[0]);
+  if (!p) return { ...r, usdWrote: 0, usdReread: 0, usdLoad: 0 };
+  return { ...r, usdWrote: r.output * p.output / 1e6, usdReread: r.read * p.cache_read / 1e6, usdLoad: (r.input * p.input + r.write5m * p.input * 1.25 + r.write1h * p.input * 2) / 1e6 };
+}
+
 function cost({ pos, opt }) {
   const [piece] = pos;
-  if (!piece || !opt.round) die('cost <piece> --round "v1" [--session <id>]');
+  if (!piece || (!opt.round && !opt.rebuild)) die('cost <piece> --round "v1" [--session <id>] [--since <ISO time>]   (or --rebuild: rewrite cost.md from its data)');
   const prices = JSON.parse(fs.readFileSync(path.join(HERE, "prices.json"), "utf8"));
   const file = path.join(piece, "cost.md");
   const prev = fs.existsSync(file) ? fs.readFileSync(file, "utf8") : "";
   const state = JSON.parse((prev.match(/<!-- cost-data (.*) -->/) || [, '{"rows":[],"marks":{}}'])[1]);
   const session = opt.session || process.env.CLAUDE_CODE_SESSION_ID || process.env.CLAUDE_SESSION_ID;
-  const row = { round: String(opt.round), when: new Date().toISOString().slice(0, 16).replace("T", " "), models: [], input: 0, write5m: 0, write1h: 0, read: 0, output: 0, usd: 0, note: "" };
-  const files = session ? transcriptFiles(session) : [];
-  if (!files.length) {
+  const row = { round: String(opt.round), when: new Date().toISOString().slice(0, 16).replace("T", " "), models: [], input: 0, write5m: 0, write1h: 0, read: 0, output: 0, usd: 0, usdWrote: 0, usdReread: 0, usdLoad: 0, note: "" };
+  const files = opt.rebuild ? [] : session ? transcriptFiles(session) : [];
+  if (opt.rebuild) {
+    // Only rewrite the table from the saved data (after a correction or a price change).
+  } else if (!files.length) {
     row.note = session ? "No Claude Code transcript found for this session, so no token counts." : "No session id given, so no token counts (Claude Code passes it to the skill).";
   } else {
-    const since = state.marks[session] || "";
+    // From the last round of this piece in this session; for a first round, from --since or
+    // from when the piece's folder was made (never the whole session).
+    const since = state.marks[session] || opt.since || pieceStart(piece);
+    if (!state.marks[session] && !opt.since && !since) row.note = "Counted from the start of the session (the piece folder's creation time was not available).";
     const seen = new Set();
     let latest = since;
     for (const f of files) {
@@ -816,32 +790,39 @@ function cost({ pos, opt }) {
         const p = priceFor(prices, m.model);
         if (m.model && !row.models.includes(m.model) && m.model !== "<synthetic>") row.models.push(m.model);
         row.input += u.input_tokens || 0; row.write5m += w5m; row.write1h += w1h; row.read += u.cache_read_input_tokens || 0; row.output += u.output_tokens || 0;
-        if (p) row.usd += ((u.input_tokens || 0) * p.input + w5m * p.input * 1.25 + w1h * p.input * 2 + (u.cache_read_input_tokens || 0) * p.cache_read + (u.output_tokens || 0) * p.output) / 1e6;
-        else if (m.model && m.model !== "<synthetic>") row.note = `No price listed for ${m.model}; its tokens are counted but not priced.`;
+        if (p) {
+          const wrote = (u.output_tokens || 0) * p.output / 1e6, reread = (u.cache_read_input_tokens || 0) * p.cache_read / 1e6;
+          const load = ((u.input_tokens || 0) * p.input + w5m * p.input * 1.25 + w1h * p.input * 2) / 1e6;
+          row.usdWrote += wrote; row.usdReread += reread; row.usdLoad += load; row.usd += wrote + reread + load;
+        } else if (m.model && m.model !== "<synthetic>") row.note = `No price listed for ${m.model}; its tokens are counted but not priced.`;
       }
     }
     state.marks[session] = latest;
   }
-  state.rows.push(row);
-  const n = (x) => x.toLocaleString("en-US");
-  const tot = state.rows.reduce((a, r) => ({ input: a.input + r.input, write: a.write + r.write5m + r.write1h, read: a.read + r.read, output: a.output + r.output, usd: a.usd + r.usd }), { input: 0, write: 0, read: 0, output: 0, usd: 0 });
+  if (!opt.rebuild) state.rows.push(row);
+  state.rows = state.rows.map((r) => split(r, prices));
+  const n = (x) => x.toLocaleString("en-US"), $ = (x) => "$" + x.toFixed(2);
+  const tot = state.rows.reduce((a, r) => ({ usd: a.usd + r.usd, wrote: a.wrote + r.usdWrote, reread: a.reread + r.usdReread, load: a.load + r.usdLoad, read: a.read + r.read, output: a.output + r.output }), { usd: 0, wrote: 0, reread: 0, load: 0, read: 0, output: 0 });
   const md = `# Cost: ${path.basename(path.resolve(piece))}
 
-Tokens Claude used for each round of this piece, and what the same tokens would cost at Anthropic's API prices (${prices.as_of}, ${prices.source}). On a Pro or Max plan you do not pay these amounts; your plan's usage limits apply instead (see the README, "What it costs"). Rendering runs on your computer and costs nothing.
+What each round of this piece would cost at Anthropic's API prices (${prices.as_of}, ${prices.source}). On a Pro or Max plan you do not pay these amounts; your plan's usage limits apply instead (see the README, "What it costs"). Rendering runs on your computer and costs nothing.
 
-| Round | When (UTC) | Model | Input | Cache write | Cache read | Output | At API prices |
-|---|---|---|---:|---:|---:|---:|---:|
-${state.rows.map((r) => `| ${r.round} | ${r.when} | ${r.models.join(", ") || "-"} | ${n(r.input)} | ${n(r.write5m + r.write1h)} | ${n(r.read)} | ${n(r.output)} | $${r.usd.toFixed(2)} |`).join("\n")}
-| **Total** | | | ${n(tot.input)} | ${n(tot.write)} | ${n(tot.read)} | ${n(tot.output)} | **$${tot.usd.toFixed(2)}** |
+| Round | When (UTC) | Model | What Claude wrote | Re-reading the chat | Loading the chat | At API prices |
+|---|---|---|---:|---:|---:|---:|
+${state.rows.map((r) => `| ${r.round} | ${r.when} | ${r.models.join(", ") || "-"} | ${$(r.usdWrote)} | ${$(r.usdReread)} | ${$(r.usdLoad)} | ${$(r.usd)} |`).join("\n")}
+| **Total** | | | **${$(tot.wrote)}** | ${$(tot.reread)} | ${$(tot.load)} | **${$(tot.usd)}** |
 ${state.rows.filter((r) => r.note).map((r) => `\n${r.round}: ${r.note}`).join("")}
 
-Cache reads are the conversation being re-read from Anthropic's cache each turn; they are cheap per token but there are many. Output is what Claude wrote: code, notes, and its own thinking.
+- **What Claude wrote** is the work itself: the code, the notes and Claude's own thinking (${n(tot.output)} tokens).
+- **Re-reading the chat:** every step re-reads the whole conversation from Anthropic's cache (${n(tot.read)} tokens). Cheap per token, but a long chat makes it the biggest part.
+- **Loading the chat** into the cache, which happens again in full after a break of more than an hour.
+- To keep cost down: one chat per piece, finished in one sitting.
 
 <!-- cost-data ${JSON.stringify(state)} -->
 `;
   fs.writeFileSync(file, md);
   const last = state.rows[state.rows.length - 1];
-  console.log(`${file}: ${last.round} ${n(last.input + last.write5m + last.write1h + last.read)} input-side tokens, ${n(last.output)} output, $${last.usd.toFixed(2)} at API prices; total so far $${tot.usd.toFixed(2)}${last.note ? ` (${last.note})` : ""}`);
+  console.log(`${file}: ${last.round} ${$(last.usd)} at API prices (Claude wrote ${$(last.usdWrote)}, re-reading ${$(last.usdReread)}, loading ${$(last.usdLoad)}); total so far ${$(tot.usd)}${last.note ? ` (${last.note})` : ""}`);
 }
 
 // ---------- library items ----------
@@ -928,7 +909,7 @@ ${slots.map(([id, s, len], i) => `  <div id="label${i}" class="label clip" data-
 // ---------- main ----------
 
 const COMMANDS = {
-  prepare, check, item, contact, phone, stills, refs, clip, join, pdf, standin, web, loudness, music, normalize, page, review, cost, library,
+  prepare, check, item, contact, phone, stills, refs, clip, join, pdf, standin, web, loudness, music, normalize, page, serve, review: serve, cost, library,
   "brand-css": ({ pos }) => {
     if (!pos[0]) die("brand-css <brand.md> [out.css]");
     const r = brandCss(pos[0], pos[1]);

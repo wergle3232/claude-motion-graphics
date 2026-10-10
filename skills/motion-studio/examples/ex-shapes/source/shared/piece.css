@@ -1,0 +1,34 @@
+/* ex-shapes: the look (MORF brand). Colours and fonts come from brand.css. Flat: no glow, no gradients. */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { overflow: hidden; background: var(--brand-bg); }
+#root { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--brand-bg); color: var(--brand-text); font-family: var(--brand-font-body), sans-serif; }
+#stage { position: absolute; inset: 0; }
+#cam { position: absolute; inset: 0; }
+
+/* Swiss grid, the same as ex-titles so the set matches. */
+#topline { position: absolute; left: 96px; right: 96px; top: 96px; height: 10px; background: var(--brand-text); transform-origin: 0% 50%; }
+#botline { position: absolute; left: 96px; right: 96px; top: 948px; height: 4px; background: var(--brand-text); transform-origin: 100% 50%; }
+#eyebrow { position: absolute; left: 150px; top: 140px; font-family: var(--brand-font-mono), monospace; font-weight: 500; font-size: 64px; line-height: 1; letter-spacing: 0.1em; color: var(--brand-text); white-space: nowrap; }
+#eyebrow .c, .label .c { display: inline-block; white-space: pre; }
+
+/* Shapes: every shape is a box at the top-left, placed by GSAP (x, y, xPercent/yPercent -50 to centre). */
+.shape { position: absolute; left: 0; top: 0; }
+/* The hero is one box whose outline is a 48-point polygon, so it can morph between any shapes. */
+#hero { width: 360px; height: 360px; background: var(--brand-text); }
+/* The storm: many small shapes, placed by GSAP. */
+#storm { position: absolute; inset: 0; }
+.st { position: absolute; left: 0; top: 0; }
+.st.ci { border-radius: 50%; }
+.st.tr { clip-path: polygon(50% 4%, 100% 92%, 0% 92%); }
+#ring { width: 270px; height: 270px; border: 8px solid var(--brand-text); border-radius: 50%; }
+#nodeL { width: 250px; height: 250px; background: var(--brand-text); }
+#mk { width: 200px; height: 200px; background: var(--brand-text); }
+#nodeR { width: 250px; height: 276px; background: var(--brand-accent); clip-path: polygon(8% 0%, 100% 50%, 8% 100%); }
+
+/* Arrows between the nodes: a thick line that draws on, with a head. */
+.line { position: absolute; left: 0; top: 0; height: 14px; background: var(--brand-text); transform-origin: 0% 50%; }
+.head { position: absolute; left: 0; top: 0; width: 40px; height: 48px; background: var(--brand-text); clip-path: polygon(0 0, 100% 50%, 0 100%); }
+.pulse { position: absolute; left: 0; top: 0; width: 90px; height: 14px; background: var(--brand-accent); }
+
+.label { position: absolute; left: 0; top: 0; font-family: var(--brand-font-display), sans-serif; font-size: 96px; line-height: 1; letter-spacing: -0.02em; color: var(--brand-text); white-space: nowrap; }
+#labM { color: var(--brand-accent); }

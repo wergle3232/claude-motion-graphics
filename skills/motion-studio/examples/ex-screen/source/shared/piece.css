@@ -1,0 +1,41 @@
+/* ex-screen: the look (MORF brand). Colours and fonts come from brand.css. Flat: no glow, no gradients. */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { overflow: hidden; background: var(--brand-bg); }
+#root { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--brand-bg); color: var(--brand-text); font-family: var(--brand-font-body), sans-serif; }
+#stage { position: absolute; inset: 0; }
+#flash { position: absolute; inset: 0; background: var(--brand-accent); opacity: 0; }
+#cam { position: absolute; inset: 0; }
+
+/* Swiss grid, the same as the other pieces so the set matches. */
+#topline { position: absolute; left: 96px; right: 96px; top: 96px; height: 10px; background: var(--brand-text); transform-origin: 0% 50%; }
+#botline { position: absolute; left: 96px; right: 96px; top: 948px; height: 4px; background: var(--brand-text); transform-origin: 100% 50%; }
+#eyebrow { position: absolute; left: 150px; top: 140px; font-family: var(--brand-font-mono), monospace; font-weight: 500; font-size: 64px; line-height: 1; letter-spacing: 0.1em; color: var(--brand-text); white-space: nowrap; }
+.c { display: inline-block; white-space: pre; }
+
+/* The drawn MORF Studio window (made up). 1200 x 680, centred in the frame. */
+#screen { position: absolute; left: 360px; top: 200px; width: 1200px; height: 680px; background: var(--brand-bg); border: 8px solid var(--brand-text); box-shadow: 28px 28px 0 var(--brand-text); }
+#screen > div { position: absolute; }
+#topbar { left: 0; top: 0; width: 1184px; height: 80px; border-bottom: 8px solid var(--brand-text); }
+#topbar > div { position: absolute; }
+#mksq { left: 28px; top: 20px; width: 36px; height: 36px; background: var(--brand-text); }
+#mkci { left: 76px; top: 20px; width: 36px; height: 36px; border-radius: 50%; background: var(--brand-accent); }
+.tab { top: 31px; width: 120px; height: 14px; background: var(--brand-muted); }
+#btn { right: 28px; top: 10px; width: 200px; height: 52px; background: var(--brand-accent); border: 4px solid var(--brand-text); font-family: var(--brand-font-mono), monospace; font-weight: 500; font-size: 30px; line-height: 44px; letter-spacing: 0.08em; text-align: center; color: var(--brand-text); }
+#layers { overflow: hidden; left: 0; top: 80px; width: 250px; height: 424px; background: var(--brand-surface); border-right: 8px solid var(--brand-text); }
+.row { position: absolute; left: 24px; height: 28px; background: var(--brand-text); }
+.row.hot { background: var(--brand-accent); }
+#preview { left: 250px; top: 80px; width: 934px; height: 424px; }
+#pvsq { position: absolute; left: 190px; top: 117px; width: 190px; height: 190px; background: var(--brand-text); }
+#pvci { position: absolute; left: 540px; top: 117px; width: 190px; height: 190px; border-radius: 50%; background: var(--brand-accent); }
+#tl { left: 0; top: 504px; width: 1184px; height: 160px; background: var(--brand-surface); border-top: 8px solid var(--brand-text); overflow: hidden; }
+#tl > div { position: absolute; }
+#prog { left: 24px; top: 14px; width: 1136px; height: 14px; background: var(--brand-accent-2); }
+#fill { left: 24px; top: 14px; width: 1136px; height: 14px; background: var(--brand-accent); transform-origin: 0% 50%; }
+.bar { height: 24px; background: var(--brand-text); }
+#playhead { left: 24px; top: 0; width: 8px; height: 152px; background: var(--brand-accent); }
+
+/* Overlay: the callout and the cursor live in frame coordinates, not on the screen. */
+#cline { position: absolute; left: 0; top: 0; height: 14px; width: 100px; background: var(--brand-accent); transform-origin: 0% 50%; }
+#cblock { position: absolute; left: 1140px; top: 0; height: 120px; padding: 0 36px; background: var(--brand-text); color: var(--brand-bg); font-family: var(--brand-font-display), sans-serif; font-size: 84px; line-height: 124px; white-space: nowrap; transform-origin: 0 50%; }
+#cursor { position: absolute; left: 0; top: 0; width: 70px; height: 100px; background: var(--brand-text); clip-path: polygon(0 0, 100% 62%, 56% 66%, 78% 100%, 58% 100%, 38% 72%, 0 100%); transform-origin: 0 0; }
+#cblock2 { position: absolute; left: 1140px; top: 0; height: 112px; padding: 0 32px; background: var(--brand-accent); color: var(--brand-text); font-family: var(--brand-font-display), sans-serif; font-size: 72px; line-height: 116px; white-space: nowrap; transform-origin: 0 50%; }

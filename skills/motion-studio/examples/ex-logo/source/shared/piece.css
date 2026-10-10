@@ -1,0 +1,20 @@
+/* ex-logo: the look (MORF brand). Colours and fonts come from brand.css. Flat: no glow, no gradients. */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { overflow: hidden; background: var(--brand-bg); }
+#root { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--brand-bg); color: var(--brand-text); font-family: var(--brand-font-body), sans-serif; }
+#stage { position: absolute; inset: 0; }
+#flash { position: absolute; inset: 0; background: var(--brand-accent); opacity: 0; }
+#cam { position: absolute; inset: 0; }
+
+/* Swiss grid, the same as the other pieces so the set matches. */
+#topline { position: absolute; left: 96px; right: 96px; top: 96px; height: 10px; background: var(--brand-text); transform-origin: 0% 50%; }
+#botline { position: absolute; left: 96px; right: 96px; top: 948px; height: 4px; background: var(--brand-text); transform-origin: 100% 50%; }
+#eyebrow { position: absolute; left: 150px; top: 140px; font-family: var(--brand-font-mono), monospace; font-weight: 500; font-size: 64px; line-height: 1; letter-spacing: 0.1em; color: var(--brand-text); white-space: nowrap; }
+.c { display: inline-block; white-space: pre; }
+
+/* The wordmark: 1620 x 352 (the logo's 3162 x 688 at 0.512). Letters are separate SVGs on the same box. */
+#wm { position: absolute; left: 150px; top: 380px; width: 1620px; height: 352px; transform-origin: 0 50%; }
+#wm svg { position: absolute; left: 0; top: 0; width: 1620px; height: 352px; overflow: visible; }
+/* The hero is the square that becomes the O: a 352 px box placed where the O sits (centre x 686.7, y 176). */
+#hero { position: absolute; left: 510.7px; top: 0; width: 352px; height: 352px; background: var(--brand-text); transform-origin: 50% 50%; }
+#rule { position: absolute; left: 150px; top: 800px; width: 1620px; height: 10px; background: var(--brand-text); transform-origin: 0% 50%; }

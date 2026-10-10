@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="stylesheet" href="../shared/brand.css" />
+    <link rel="stylesheet" href="../shared/piece.css" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script src="../shared/piece.js"></script>
+    <style>
+      html, body { width: 1920px; height: 1080px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="15" data-width="1920" data-height="1080">
+      <div id="cam" class="clip" data-start="0" data-duration="15" data-track-index="1">
+        <div id="disc"></div><svg id="ringsvg" viewBox="0 0 340 340"></svg><div id="ringnum"></div>
+      </div>
+    </div>
+    <script>
+      document.fonts.ready.then(function () { window.__timelines["main"] = window.buildPieceTimeline(); });
+    </script>
+  </body>
+</html>

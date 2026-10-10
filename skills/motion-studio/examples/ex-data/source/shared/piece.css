@@ -1,0 +1,36 @@
+/* ex-data: the look (MORF brand). Colours and fonts come from brand.css. Flat: no glow, no gradients. */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { overflow: hidden; background: var(--brand-bg); }
+#root { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--brand-bg); color: var(--brand-text); font-family: var(--brand-font-body), sans-serif; }
+#stage { position: absolute; inset: 0; }
+#flash { position: absolute; inset: 0; background: var(--brand-accent); opacity: 0; }
+#cam { position: absolute; inset: 0; }
+
+/* Swiss grid, the same as ex-titles and ex-shapes so the set matches. */
+#topline { position: absolute; left: 96px; right: 96px; top: 96px; height: 10px; background: var(--brand-text); transform-origin: 0% 50%; }
+#botline { position: absolute; left: 96px; right: 96px; top: 948px; height: 4px; background: var(--brand-text); transform-origin: 100% 50%; }
+#eyebrow { position: absolute; left: 150px; top: 140px; font-family: var(--brand-font-mono), monospace; font-weight: 500; font-size: 64px; line-height: 1; letter-spacing: 0.1em; color: var(--brand-text); white-space: nowrap; }
+.c { display: inline-block; white-space: pre; }
+
+/* The floor the stage stands on, and the dock under it. */
+#floor { position: absolute; left: 96px; right: 96px; top: 682px; height: 8px; background: var(--brand-text); transform-origin: 0% 50%; }
+.vsep { position: absolute; top: 706px; height: 230px; width: 4px; background: var(--brand-text); transform-origin: 50% 0%; }
+#pulse { position: absolute; left: 0; top: 682px; width: 220px; height: 8px; background: var(--brand-accent); }
+
+/* Groups are placed in stage coordinates and scaled into the dock by GSAP. */
+.grp { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.num { position: absolute; font-family: var(--brand-font-display), sans-serif; line-height: 0.8; white-space: nowrap; color: var(--brand-text); transform-origin: 0 100%; }
+.num .d { display: inline-block; text-align: center; }
+.num .d.dg { width: 0.74em; }
+.num .d.cm { width: 0.34em; }
+.num .d.pc { width: 0.95em; }
+#n1 { left: 150px; top: 230px; font-size: 400px; height: 320px; }
+#n3 { left: 740px; top: 290px; font-size: 320px; height: 256px; }
+#val2 { left: 960px; width: 400px; top: 250px; font-size: 84px; height: 70px; text-align: center; }
+#val2 .d { }
+
+.chip { position: absolute; left: 0; top: 0; height: 80px; padding: 0 28px; background: var(--brand-text); color: var(--brand-bg); font-family: var(--brand-font-mono), monospace; font-weight: 500; font-size: 64px; line-height: 80px; letter-spacing: 0.06em; white-space: nowrap; transform-origin: 0 50%; }
+
+.bar { position: absolute; width: 180px; background: var(--brand-text); transform-origin: 50% 100%; }
+.bar.hot { background: var(--brand-accent); }
+#ringsvg { position: absolute; left: 150px; top: 236px; width: 440px; height: 440px; overflow: visible; }

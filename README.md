@@ -2,7 +2,7 @@
 
 A plugin for Claude Code that makes motion graphics and carousels in your own brand.
 
-You describe what you want in plain words ("a 15-second promo for our booking app, for Reels and LinkedIn"). Claude writes a short brief, shows you a storyboard, builds the piece, checks its own work against design rules, and shows you a preview page. You give feedback in the chat, and it makes the next version. Everything is kept as ordinary files in a folder on your computer.
+You describe what you want in plain words ("a 15-second promo for our booking app, for Reels and LinkedIn"). Claude writes a short brief, builds the piece, checks its own work against design rules, and shows you a preview page (or still frames first, if you ask for a storyboard). You give feedback in the chat, and it makes the next version. Everything is kept as ordinary files in a folder on your computer.
 
 It can make:
 
@@ -18,7 +18,7 @@ The videos are made on your own computer by [HyperFrames](https://hyperframes.he
 - A paid Claude plan that includes Claude Code (Pro, Max, Team or Enterprise).
 - The Claude desktop app (use its **Code** tab), or Claude Code in a terminal.
 
-> **What was tested so far:** the plugin and its tools were built and tested on Linux in a cloud computer. The install below has not yet been tried on a real Windows PC or Mac; that test comes next. If a step does not work as written, tell Claude what happened, or see [Troubleshooting](#troubleshooting).
+> **What was tested so far:** installed from this repository on a Windows 11 PC (October 2026) and used there for a set of finished pieces (the examples). Not yet tried on a Mac. If a step does not work as written, tell Claude what happened, or see [Troubleshooting](#troubleshooting).
 
 ## Install: three steps
 
@@ -56,11 +56,13 @@ Ask for what you want, in your own words. For example:
 
 Then:
 
-1. **Brief.** Claude asks a few short questions if it needs to (each with a suggested answer), then writes `<piece>/brief.md`.
-2. **Storyboard.** Claude shows you still frames of each moment and one line about what will move. Open `<piece>/storyboard-1/index.html` (double-click it) to see them. Say what to change, or "go ahead".
-3. **Version 1.** Claude builds the piece, renders it, checks it against its design rules and fixes the weak points (up to three rounds) before showing it to you. Open `<piece>/v1/index.html` to watch every format.
-4. **Your feedback** makes version 2, and so on. Each version keeps its own folder, so you can compare.
-5. **Final.** When you say it is approved, Claude makes full-quality files in `<piece>/final/`, ready to post or to drop into your editor, and a short `post.md` with a caption and alt text.
+1. **Version 1.** Claude writes a short brief from what you said (`<piece>/brief.md`), builds the piece, renders it, checks it against its design rules and fixes the weak points (up to three rounds) before showing it to you. Open `<piece>/v1/index.html` to watch every format.
+2. **Your feedback** makes version 2, and so on. Each version keeps its own folder, so you can compare.
+3. **Final.** When you say it is approved, Claude makes full-quality files in `<piece>/final/`, ready to post or to drop into your editor, and a short `post.md` with a caption and alt text.
+
+That is the quick way, and the default. For a longer or more important piece, say **"storyboard first"**: Claude asks a few questions, then shows still frames of each moment with one line about what will move (`<piece>/storyboard-1/index.html`) before building anything.
+
+Not sure what to ask for? The [prompting guide](skills/motion-studio/prompting-guide.md) has a first sentence for each kind of piece, each with a finished [example](skills/motion-studio/examples/).
 
 ### What is in your folder
 
@@ -69,10 +71,10 @@ my-motion/
   brand.md            your brand: colours, fonts, look, words, things to avoid
   spring-promo/       one folder per piece
     brief.md          what the piece is for
-    storyboard-1/     the storyboard frames and a page to view them
+    storyboard-1/     only if you asked for a storyboard
     v1/  v2/          each version's videos, contact sheet, notes and page
     final/            the finished files
-    cost.md           what each round used
+    cost.md           only if you asked what it costs
     source/           Claude's working files (you never need to open these)
 ```
 
@@ -80,11 +82,9 @@ You can edit `brand.md` and `brief.md` yourself in any text editor; Claude reads
 
 ## Giving feedback
 
-Type it in the chat, as specifically as you can: "the logo comes in too late", "make the 9:16 headline bigger", "slide 3 has too many words".
+Type it in the chat, as specifically as you can, with the moment in seconds if it helps: "at 4.5 s the logo comes in too late", "make the 9:16 headline bigger", "slide 3 has too many words".
 
-Or use the review page, to point at exact moments: ask Claude to "open the review page". It gives you a link like `http://localhost:4321/v1/`. Open it in your browser, pause a video where something should change, type a note and press **Add note**; the time is added for you. Press **Save notes** when you are done and tell Claude your notes are ready. They are saved in `v1/feedback.md`, which Claude reads.
-
-(If you open a version's `index.html` straight from the folder instead, the notes panel still works, but **Save** cannot write files from there: press **Copy notes** and paste them into the chat.)
+If a version's page does not play its videos (some viewers, such as an app's built-in browser pane, open files without playing media), ask Claude to "serve the page": it gives you a link like `http://localhost:4321/v1/` to open in your browser.
 
 ## Formats
 
@@ -96,6 +96,8 @@ Or use the review page, to point at exact moments: ask Claude to "open the revie
 | Overlay | 16:9 or 9:16, transparent | Over talking-head video in your editor. You get a `.mov` (Premiere Pro, Final Cut Pro, DaVinci Resolve) and a `.webm` (web, CapCut). Put it on the track above your footage. |
 | Carousel | 1080 x 1350 per slide | Instagram (PNG images, and MP4 for moving slides) and LinkedIn (one PDF) |
 
+**See-through versions.** Any piece, not only an overlay, can also come out as a see-through `.mov` to lay over your own footage in your editor: ask for "a see-through version". These files are large (about 20 MB for 12 seconds), so they are made when you ask.
+
 Text is kept out of the areas each app covers with its buttons and captions, and every word is checked for readability at phone size.
 
 **Sound.** Pieces work muted (most feeds play muted). Claude can add sound effects that come with HyperFrames. For music, choose a track from a source whose licence allows it in videos, such as [Pixabay Music](https://pixabay.com/music/) or YouTube's Audio Library, download it and give Claude the file and the page you got it from. Social videos are levelled to about -14 LUFS, the loudness Instagram, TikTok and YouTube expect. Claude cannot listen, so trust your own ears on the final mix.
@@ -104,11 +106,11 @@ Text is kept out of the areas each app covers with its buttons and captions, and
 
 The plugin and HyperFrames are free, and rendering runs on your computer. The cost is Claude's work: reading, designing, writing code, and looking at its renders.
 
-- **Each piece writes `cost.md`**: the tokens Claude used in each round (brief, storyboard, each version) and what the same work would cost at Anthropic's API prices. On a Pro or Max plan you do not pay those amounts; they show how heavy the work was.
+- **Ask "what did this cost?"** and Claude keeps `cost.md` for the piece: what each round would cost at Anthropic's API prices, split into **what Claude wrote** (the work itself: code, notes and its thinking) and **re-reading and loading the conversation**. Most of the total is the conversation, not the graphic: for the examples, the work itself was about $0.40 to $4 a piece. On a Pro or Max plan you do not pay those amounts; they show how heavy the work was.
 - **On a Pro, Max, Team or Enterprise plan**, your plan has usage limits that reset every few hours and every week. Type `/usage` in Claude Code to see them: bars show how much of the current session window and of the week you have used, as percentages, and when each resets. The breakdown under the bars shows how much of your recent usage went to skills and plugins, including this one. Motion pieces are heavy work: a 15-second piece in three formats with a storyboard and three critique rounds can use a large share of a Pro plan's session window. On a busy week, Max plans give more room.
 - **On an API (Console) account**, `/usage` shows the session's cost in dollars, and `cost.md` gives it per round.
 
-To spend less: keep pieces short, ask for one format first and add the others once you like it, and start a new chat (`/clear`) for each new piece.
+To spend less: **one chat per piece, finished in one sitting.** Every step re-reads the whole conversation, so a long chat costs more, and after a break of more than an hour the whole conversation is loaded again at full price. Start a new chat (`/clear`) for each new piece. Keep pieces short, and ask for one format first and add the others once you like it. Skipping the storyboard (the default) roughly halves the cost.
 
 ## Troubleshooting
 
@@ -124,7 +126,9 @@ To spend less: keep pieces short, ask for one format first and add the others on
 
 **Fonts look wrong in a render.** Fonts come from `brand.md`. Fonts listed as "Google Fonts" are downloaded when a piece is set up, so the computer must be online then. For your own font files, put them in `brand/fonts/` and write the file names in brand.md's Fonts table. Then ask Claude to "run prepare again".
 
-**Updating the plugin.** `claude plugin marketplace update motion-graphics-studio`, then restart Claude Code.
+**Updating the plugin.** `claude plugin marketplace update motion-graphics-studio`, then `claude plugin update motion-graphics-studio@motion-graphics-studio`, then restart Claude Code. (Or ask Claude: "update the motion graphics plugin".)
+
+**A version's page shows the videos but they do not play.** Ask Claude to serve the page and open the link it gives (see [Giving feedback](#giving-feedback)).
 
 **Removing it.** `claude plugin uninstall motion-graphics-studio@motion-graphics-studio`. Your motion folder and its files stay where they are.
 

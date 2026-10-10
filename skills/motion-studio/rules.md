@@ -44,6 +44,16 @@ These are what a model makes when nobody tells it otherwise, and they make a pie
 - Write on-screen words the way brand.md's Words section says. Plain, literal, no em dashes unless the brand uses them.
 - Never put another company's logo or trademark in a piece unless the brief provides it and the user has the right to use it.
 
+## Code rules for the timeline
+
+Mistakes seen in real pieces, each cheap to avoid:
+
+- **The very first frame already moves or shows something.** Two first renders opened on blank paper. Start the first move at 0, or have something on screen at 0.
+- **A later `fromTo` on the same element and property as an earlier tween gets `immediateRender: false`.** Without it GSAP sets its start value when the timeline is built, and the element shows in the wrong state from frame one (seen: a circle and a flash visible at 0 s).
+- **Do not tween `clip-path: polygon(...)` strings with GSAP:** it jumped to the end instead of blending. Blend the points yourself from a proxy object in `onUpdate`, with every shape as the same number of points (the `se-shape-morph` library item does this).
+- **When the motion is physics** (a bounce, a fall, a throw), work every frame out from the time with a small model instead of hand-placing keyframes: it stays right when slowed down, replayed or retimed (the `se-physics-bounce` item).
+- No `Math.random` and no clock time in a timeline; use a fixed-seed random so every render is the same.
+
 ## Sound
 
 See [sound.md](sound.md).

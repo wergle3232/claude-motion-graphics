@@ -1,0 +1,30 @@
+/* ex-ball: the look (MORF brand). Colours and fonts come from brand.css. Flat: no glow, no gradients, no blur. */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { overflow: hidden; background: var(--brand-bg); }
+#root { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--brand-bg); color: var(--brand-text); font-family: var(--brand-font-body), sans-serif; }
+#stage { position: absolute; inset: 0; }
+
+/* Swiss grid, the same top rule and mono label as the rest of the set. */
+#topline { position: absolute; left: 96px; right: 96px; top: 96px; height: 10px; background: var(--brand-text); }
+.eyebrow { position: absolute; left: 150px; top: 140px; font-family: var(--brand-font-mono), monospace; font-weight: 500; font-size: 64px; line-height: 1; letter-spacing: 0.1em; color: var(--brand-text); white-space: nowrap; }
+.c { display: inline-block; white-space: pre; }
+
+/* The floor: a slightly darker paper strip the ball lands in the middle of, and a thick rule as its front edge. */
+#floor { position: absolute; left: 96px; right: 96px; top: 810px; height: 80px; background: var(--brand-surface); }
+#rule { position: absolute; left: 96px; right: 96px; top: 890px; height: 10px; background: var(--brand-text); }
+
+/* Ball, shadow and ghosts are boxes at the top-left, placed every frame by piece.js. */
+#ball, .ghost { position: absolute; left: 0; top: 0; width: 150px; height: 150px; border-radius: 50%; transform-origin: 50% 100%; }
+#ball { background: var(--brand-accent); }
+.ghost { border: 4px solid var(--brand-accent-2); }
+#shadow { position: absolute; left: 0; top: 0; width: 170px; height: 34px; border-radius: 50%; background: var(--brand-accent-2); transform-origin: 50% 50%; }
+.tick { position: absolute; left: 0; top: 0; width: 80px; height: 8px; background: var(--brand-text); transform-origin: 50% 50%; }
+
+/* Callouts: mono labels with a leader line and a dot on what they point at. */
+#ink { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: visible; }
+.label { position: absolute; left: 0; top: 0; font-family: var(--brand-font-mono), monospace; font-weight: 500; font-size: 64px; line-height: 1.04; letter-spacing: 0.1em; color: var(--brand-text); white-space: nowrap; }
+
+/* See-through version: only the ball and its shadow. */
+#root.overlay, html.overlay, html.overlay body { background: transparent; }
+#root.overlay #topline, #root.overlay .eyebrow, #root.overlay #floor, #root.overlay #rule,
+#root.overlay #ink, #root.overlay .label, #root.overlay .ghost, #root.overlay .tick { display: none; }

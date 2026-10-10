@@ -43,6 +43,14 @@ A variant of the same piece is a composition variable, not more entry files. Dec
 - Judge it over footage, never over black: `tools overlay-preview <overlay.webm|mov> <footage.mp4 or "standin"> <preview.mp4>`. "standin" draws a plain head-and-shoulders shape; use the user's real footage when they give it.
 - Tell the user how to place it: put the overlay file on the track above their footage at the time it should appear; it is already timed from 0.
 
+## See-through version of any piece
+
+Any piece, not only an overlay, can also come out see-through, so the user can lay it over their own footage in Resolve, Premiere or Final Cut (a bouncing ball over a desk shot, a chart over a talking head).
+
+- Add a `mode` composition variable with an `overlay` value to the entry file (`data-composition-variables='[{"id":"mode","type":"string","label":"Mode: final or overlay","default":"final"}]'`). In `piece.js`, when `mode` is `overlay`, add an `overlay` class to `#root` and `<html>`; in `piece.css`, that class makes `html`, `body` and `#root` transparent and hides the background, the frame rules and anything else that is not the subject.
+- Render it with `--variables '{"mode":"overlay"}' --format mov` (and `--format webm` if they want a small file). Check it with `tools overlay-preview <file> standin <out.mp4>`.
+- Name it `<piece>-overlay-16x9.mov` in `final/`. .mov files are large (about 20 MB for 12 seconds): make one when the user asks, or ask first.
+
 ## Carousel
 
 - Built from the 4:5 layout (or 1:1 for LinkedIn if the brief asks). Each slide is either a still (a beat at its most visible moment, pulled with `tools stills`) or a short clip that loops (`tools clip --from --to --loop`).

@@ -1,0 +1,18 @@
+/* ex-overlay: graphics over a talking head (MORF look). Colours and fonts come from brand.css.
+   Plates are flat paper blocks with a hard orange-red offset shadow, so they read over dark footage. */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { overflow: hidden; background: transparent; }
+#root { position: relative; width: 100%; height: 100%; overflow: hidden; background: transparent; color: var(--brand-text); font-family: var(--brand-font-body), sans-serif; }
+#clip { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+#cam { position: absolute; inset: 0; }
+
+.plate { position: absolute; left: 0; top: 0; background: var(--brand-bg); color: var(--brand-text); white-space: nowrap; box-shadow: 10px 10px 0 var(--brand-accent); transform-origin: 0 50%; }
+.plate.hot { background: var(--brand-accent); color: var(--brand-text); box-shadow: 10px 10px 0 var(--brand-bg); }
+.plate.name { height: 110px; padding: 0 44px 0 52px; font-family: var(--brand-font-display), sans-serif; font-size: 72px; line-height: 112px; }
+.plate.name::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 20px; background: var(--brand-accent); }
+.plate.call { height: 100px; padding: 0 34px; font-family: var(--brand-font-display), sans-serif; font-size: 64px; line-height: 102px; }
+.plate.chip { height: 80px; padding: 0 28px; font-family: var(--brand-font-mono), monospace; font-weight: 500; font-size: 64px; line-height: 82px; letter-spacing: 0.04em; }
+
+#disc { position: absolute; left: 1240px; top: 280px; width: 340px; height: 340px; border-radius: 50%; background: var(--brand-bg); box-shadow: 10px 10px 0 var(--brand-accent); transform-origin: 50% 50%; }
+#ringsvg { position: absolute; left: 1240px; top: 280px; width: 340px; height: 340px; overflow: visible; }
+#ringnum { position: absolute; left: 1240px; top: 280px; width: 340px; height: 340px; display: flex; align-items: center; justify-content: center; font-family: var(--brand-font-display), sans-serif; font-size: 112px; line-height: 1; color: var(--brand-text); }

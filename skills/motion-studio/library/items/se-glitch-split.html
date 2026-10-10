@@ -1,0 +1,97 @@
+<!doctype html>
+<!--
+  se-glitch-split (claude-motion-graphics library)
+  Job: a word or line being disrupted, or a "hard cut" accent on a title that is already
+  on screen. The text tears into horizontal bands that jump sideways with two coloured
+  ghost copies, then snaps back together with a small flash and shake.
+  From: the MORF "moving titles" example (ex-titles, the title's glitch split).
+  Settings: text, size (px), bands (number of slices), ghost1 and ghost2 (colours; empty =
+  the brand's accent and second accent), length (seconds; the move fits it). Base 0.7 s:
+  still to 0.15 s, torn 0.15 to 0.45 s, still again after.
+  Brand: empty colour settings take the piece's brand.css (--brand-*); fonts too.
+-->
+<html lang="en" data-composition-id="se-glitch-split" data-composition-variables='[
+  {"id":"text","type":"string","label":"Text","default":"Motion graphics"},
+  {"id":"size","type":"number","label":"Text size","default":180,"min":40,"max":500,"unit":"px"},
+  {"id":"bands","type":"number","label":"Bands","default":6,"min":2,"max":12},
+  {"id":"ghost1","type":"string","label":"First ghost colour (empty: brand accent)","default":""},
+  {"id":"ghost2","type":"string","label":"Second ghost colour (empty: brand second accent)","default":""},
+  {"id":"length","type":"number","label":"Length","default":0.7,"min":0.3,"max":10,"step":0.05,"unit":"s"}
+]'>
+  <body>
+    <template>
+      <div id="root" data-composition-id="se-glitch-split">
+        <style>
+          #root { position: absolute; inset: 0; overflow: hidden; }
+          .se-gs-cam, .se-gs-layer { position: absolute; inset: 0; }
+          .se-gs-text { position: absolute; left: 0; top: 0; font-family: var(--brand-font-display, "Inter"), sans-serif; color: var(--brand-text, #f5f5f5); line-height: 1; letter-spacing: -0.03em; white-space: nowrap; }
+          .se-gs-flash { position: absolute; inset: 0; opacity: 0; background: var(--brand-text, #f5f5f5); }
+        </style>
+        <div class="se-gs-cam"></div>
+        <div class="se-gs-flash"></div>
+        <script>
+          (function () {
+            "use strict";
+            var ID = "se-glitch-split", BASE = 0.7;
+            var root = document.getElementById("root");
+            var brand = function (n, d) { var x = getComputedStyle(root).getPropertyValue("--brand-" + n).trim(); return x || d; };
+            var v = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            var str = function (k, d) { return v[k] == null || v[k] === "" ? d : String(v[k]); };
+            var num = function (k, d) { var n = Number(v[k]); return Number.isFinite(n) && n > 0 ? n : d; };
+            var text = str("text", "Motion graphics"), size = num("size", 180), NB = Math.round(num("bands", 6)), length = num("length", BASE);
+            var g1 = str("ghost1", brand("accent", "#ff3d00")), g2 = str("ghost2", brand("accent-2", "#8e887e"));
+
+            function layer(colour, clip) {
+              var l = document.createElement("div"); l.className = "se-gs-layer";
+              var t = document.createElement("div"); t.className = "se-gs-text"; t.textContent = text; t.style.fontSize = size + "px";
+              if (colour) t.style.color = colour;
+              if (clip) l.style.clipPath = clip;
+              l.appendChild(t); root.querySelector(".se-gs-cam").appendChild(l);
+              return { l: l, t: t };
+            }
+
+            function build() {
+              var W = root.offsetWidth || 1920, H = root.offsetHeight || 1080;
+              var main = layer(null, null);
+              var x = W / 2 - main.t.offsetWidth / 2, y = H / 2 - main.t.offsetHeight / 2, h = main.t.offsetHeight;
+              var ghostA = layer(g1, null), ghostB = layer(g2, null), bands = [];
+              for (var b = 0; b < NB; b++) {
+                var top = y + (b / NB) * h, bot = H - (y + ((b + 1) / NB) * h);
+                bands.push(layer(null, "inset(" + top.toFixed(1) + "px 0 " + bot.toFixed(1) + "px 0)"));
+              }
+              [main, ghostA, ghostB].concat(bands).forEach(function (o) { gsap.set(o.t, { x: x, y: y }); });
+              gsap.set([ghostA.l, ghostB.l].concat(bands.map(function (o) { return o.l; })), { opacity: 0 });
+              var tl = gsap.timeline({ paused: true }), T0 = 0.15, snap = 0.45;
+              tl.set(main.l, { opacity: 0 }, T0);
+              tl.set(bands.map(function (o) { return o.l; }), { opacity: 1 }, T0);
+              tl.set([ghostA.l, ghostB.l], { opacity: 0.75 }, T0);
+              // Three torn states, each a little calmer (fixed offsets, so every render is the same).
+              var amp = size * 0.75;
+              [1, -0.6, 0.3].forEach(function (k, n) {
+                bands.forEach(function (o, i) { tl.set(o.l, { x: amp * k * (i % 2 ? -1 : 1) * (0.5 + ((i * 37) % 10) / 10), skewX: n === 0 ? (i % 2 ? -8 : 8) : 0 }, T0 + n * 0.1); });
+                tl.set(ghostA.l, { x: size * 0.17 - n * 8, y: -6 }, T0 + n * 0.1);
+                tl.set(ghostB.l, { x: -size * 0.17 + n * 8, y: 6 }, T0 + n * 0.1);
+              });
+              tl.set(bands.map(function (o) { return o.l; }), { x: 0, skewX: 0, opacity: 0 }, snap);
+              tl.set([ghostA.l, ghostB.l], { opacity: 0 }, snap);
+              tl.set(main.l, { opacity: 1 }, snap);
+              tl.fromTo(root.querySelector(".se-gs-flash"), { opacity: 0.5 }, { opacity: 0, immediateRender: false, duration: 0.12, ease: "power2.out" }, snap);
+              [[-12, 6], [8, -4], [-4, 2], [0, 0]].forEach(function (p, i) { tl.to(root.querySelector(".se-gs-cam"), { x: p[0], y: p[1], duration: 0.035, ease: "none" }, snap + i * 0.035); });
+              tl.set({}, {}, BASE);
+              return tl;
+            }
+
+            var fonts = document.fonts ? document.fonts.ready : Promise.resolve();
+            fonts.then(function () {
+              var inner = build();
+              var tl = gsap.timeline({ paused: true });
+              tl.to(inner, { time: BASE, duration: length, ease: "none" }, 0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines[ID] = tl;
+            });
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

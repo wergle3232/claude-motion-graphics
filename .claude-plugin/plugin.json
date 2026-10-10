@@ -1,7 +1,8 @@
 {
   "name": "motion-graphics-studio",
   "displayName": "Motion graphics studio",
-  "description": "Make motion graphics and carousels in your own brand with Claude Code and HyperFrames: social videos (9:16, 4:5, 16:9), transparent overlays for talking-head video, and Instagram or LinkedIn carousels. Storyboards first, critiques its own renders, keeps everything in plain files in your folder.",
+  "version": "1.1.0",
+  "description": "Make motion graphics and carousels in your own brand with Claude Code and HyperFrames: social videos (9:16, 4:5, 16:9), transparent overlays for talking-head video, and Instagram or LinkedIn carousels. Quick by default (say what you want, get a version, steer it), storyboards when you ask, critiques its own renders, keeps everything in plain files in your folder.",
   "author": { "name": "wergle3232" },
   "repository": "https://github.com/wergle3232/claude-motion-graphics",
   "keywords": ["motion graphics", "video", "carousel", "hyperframes", "brand", "social media"]

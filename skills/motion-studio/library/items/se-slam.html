@@ -1,0 +1,75 @@
+<!doctype html>
+<!--
+  se-slam (claude-motion-graphics library)
+  Job: a loud landing for a word or a short title. The word drops from huge and blurred,
+  lands with a flash and a squash, and the frame shakes.
+  From: the MORF "moving titles" example (ex-titles, "Motion" slamming in).
+  Settings: text, size (px), flash (colour; empty = the brand's text colour, "none" = no flash),
+  shake (px; 0 = none), length (seconds; the move fits it). Base 0.75 s.
+  Brand: empty colour settings take the piece's brand.css (--brand-*); fonts too.
+-->
+<html lang="en" data-composition-id="se-slam" data-composition-variables='[
+  {"id":"text","type":"string","label":"Text","default":"Motion"},
+  {"id":"size","type":"number","label":"Text size","default":215,"min":40,"max":500,"unit":"px"},
+  {"id":"flash","type":"string","label":"Flash colour (empty: brand text, none: off)","default":""},
+  {"id":"shake","type":"number","label":"Shake","default":18,"min":0,"max":60,"unit":"px"},
+  {"id":"length","type":"number","label":"Length","default":0.75,"min":0.3,"max":10,"step":0.05,"unit":"s"}
+]'>
+  <body>
+    <template>
+      <div id="root" data-composition-id="se-slam">
+        <style>
+          #root { position: absolute; inset: 0; overflow: hidden; }
+          .se-slam-cam { position: absolute; inset: 0; }
+          .se-slam-word { position: absolute; left: 0; top: 0; font-family: var(--brand-font-display, "Inter"), sans-serif; color: var(--brand-text, #f5f5f5); line-height: 0.96; letter-spacing: -0.035em; white-space: nowrap; transform-origin: 50% 70%; }
+          .se-slam-flash { position: absolute; inset: 0; opacity: 0; }
+        </style>
+        <div class="se-slam-cam"><div class="se-slam-word"></div></div>
+        <div class="se-slam-flash"></div>
+        <script>
+          (function () {
+            "use strict";
+            var ID = "se-slam", BASE = 0.75;
+            // HyperFrames runs this with a document scoped to this copy, so "root" is this copy's root.
+            var root = document.getElementById("root");
+            var brand = function (n, d) { var x = getComputedStyle(root).getPropertyValue("--brand-" + n).trim(); return x || d; };
+            var v = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            var str = function (k, d) { return v[k] == null || v[k] === "" ? d : String(v[k]); };
+            var num = function (k, d) { var n = Number(v[k]); return Number.isFinite(n) && n >= 0 && v[k] !== "" && v[k] != null ? n : d; };
+            var text = str("text", "Motion"), size = num("size", 215), flashCol = str("flash", ""), shake = num("shake", 18), length = num("length", BASE) || BASE;
+
+            function build() {
+              var W = root.offsetWidth || 1920, H = root.offsetHeight || 1080;
+              var cam = root.querySelector(".se-slam-cam"), word = root.querySelector(".se-slam-word"), flash = root.querySelector(".se-slam-flash");
+              word.style.fontSize = size + "px";
+              word.textContent = text;
+              flash.style.background = flashCol === "none" ? "transparent" : flashCol || brand("text", "#f5f5f5");
+              gsap.set(word, { x: W / 2 - word.offsetWidth / 2, y: H / 2 - word.offsetHeight / 2 });
+              var tl = gsap.timeline({ paused: true });
+              tl.fromTo(word, { opacity: 0 }, { opacity: 1, duration: 0.06, ease: "none" }, 0);
+              tl.fromTo(word, { scale: 3.4, filter: "blur(30px)" }, { scale: 1, filter: "blur(0px)", duration: 0.25, ease: "power4.in" }, 0);
+              var land = 0.25;
+              if (flashCol !== "none") tl.fromTo(flash, { opacity: 0.9 }, { opacity: 0, immediateRender: false, duration: 0.16, ease: "power2.out" }, land);
+              tl.fromTo(word, { scaleY: 0.86 }, { scaleY: 1, immediateRender: false, duration: 0.3, ease: "elastic.out(1.2, 0.4)" }, land);
+              var s = shake;
+              [[s, -s * 0.66], [-s * 0.78, s * 0.55], [s * 0.55, s * 0.33], [-s * 0.33, -s * 0.22], [s * 0.16, s * 0.11], [0, 0]].forEach(function (p, i) {
+                tl.to(cam, { x: p[0], y: p[1], duration: 0.04, ease: "none" }, land + i * 0.04);
+              });
+              tl.set({}, {}, BASE);
+              return tl;
+            }
+
+            var fonts = document.fonts ? document.fonts.ready : Promise.resolve();
+            fonts.then(function () {
+              var inner = build();
+              var tl = gsap.timeline({ paused: true });
+              tl.to(inner, { time: BASE, duration: length, ease: "none" }, 0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines[ID] = tl;
+            });
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

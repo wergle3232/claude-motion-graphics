@@ -64,10 +64,22 @@ tools item <piece>/source se-price-shimmer --size 1080x1920 # 9:16
 | A title whose words rise into place | `per-word-rise` | text, split, cues, accent, exit | 3.5 s | tried |
 | Moves attention between two things on screen (scale, blur, dim) | `focus-swap` | focus, blur, dim (a component: pasted into a scene, not mounted) | 1.5 s | tried |
 | Pulls back from one card to the whole grid | `parallax-unzoom` | progress, focus scale, sibling push and fade (a component: CSS and a helper, driven by the piece's own timeline) | any | tried |
+| A loud landing for a word or short title: drops from huge and blurred, flash, squash, shake | `se-slam` | text, size, flash colour (or none), shake | 0.75 s | tried (MORF titles) |
+| A word or line being disrupted: tears into bands with coloured ghosts, snaps back | `se-glitch-split` | text, size, bands, two ghost colours | 0.7 s | tried (MORF titles) |
+| Showing type or a font choice: "Aa" on a disc swaps fonts, each named, settles in the brand font | `se-font-specimen` | letters, disc size, fonts, final name, disc colour | 1.1 s | tried (MORF titles) |
+| Changing one shape into another, many times | `se-shape-morph` | forms (square, circle, triangle, star, diamond), a colour per form, size, seconds per form | 1.5 s (0.3 s + 0.3 s a form) | tried (MORF shapes) |
+| A loud opening: shapes pour in and pile up, then implode into one shape | `se-shape-storm` | count, the shape at the end (square, circle, none), its size | 1.5 s | tried (MORF shapes) |
+| Something dropping and landing with weight: a ball falls, squashes, bounces lower each time, rolls to a stop; optional ghost copies | `se-physics-bounce` | size, speed kept per bounce, sideways travel, ghosts, shadow, colour (a longer length is real slow motion) | 4.1 s | tried (MORF ball reel) |
 
 The last five come from HyperFrames' catalog with small changes; their accent setting picks `--brand` (the brand accent), `--accent` (second accent) or `--accent-2` (third). The items whose header says "From HyperFrames" or names a HyperFrames recipe are covered by [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
 The 3 items with a fixed length in their file (`grid-card-assemble`, `state-chip-rail`, `per-word-rise`) read their length from `data-composition-duration` in their own file: change that number in the piece's copy to fit a slot.
+
+## Recipes (techniques for a piece's own timeline)
+
+- [Camera dive](recipes/camera-dive.md): zoom into a shape until it fills the frame, swap the scene under the colour, pull back out of a shape in the next scene. Tried (MORF shapes).
+- **Slow-motion replay of the same motion:** work the motion out from the time (see `se-physics-bounce` and `examples/ex-ball/source/shared/sim.js`), then play a stretch of it again through a time-warp: a list of (piece time, motion time) points joined by straight lines, slowest at the moment that matters. Leave ghost copies at equal steps of motion time to show the spacing, and point at things with callout labels whose line can follow a moving target. Tried (MORF ball reel).
+- **See-through version:** a `mode` variable that hides everything but the subject ([formats.md](../formats.md), "See-through version of any piece"). Tried (MORF ball reel).
 
 ## Noted, not built
 
